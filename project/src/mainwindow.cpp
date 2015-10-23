@@ -114,17 +114,25 @@ MainWindow::~MainWindow()
 void MainWindow::RecoverAnalyzeTask()
 {
     // Get Info From DB
-    std::vector<std::map<std::string, std::string> > res;
-    if (!SelectFromTable("Tasks", res)) {
+    std::vector<std::map<std::string, std::string> > Tasks;
+    if (!SelectFromTable("Tasks", Tasks)) {
         return;
     }
-    if (res.empty()) {
+    if (Tasks.empty()) {
         return;
     }
 
     int channel = 0;
-    for (size_t i=0; i<res.size(); ++i) {
-        if (res[i]["camera_status"] == kStatusON) {
+    for (size_t i=0; i<Tasks.size(); ++i) {
+        if (Tasks[i]["camera_status"] == kStatusON) {
+            std::vector<std::map<std::string, std::string> > res;
+            if (!SelectFromTable("Tasks", "task_name", Tasks[i]["task_name"], res)) {
+                return;
+            }
+            if (res.empty()) {
+                return;
+            }
+
             CreateDelegate(res, channel);
             ++channel;
         }
