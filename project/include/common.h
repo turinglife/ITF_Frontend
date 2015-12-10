@@ -56,7 +56,7 @@ const string kPersFile = "pers.csv";
 const string kROIFile = "roi.csv";
 const string kLMFile = "lm.csv";
 
-const string kHome = string(getenv("HOME")) + "/Desktop";
+const string kHome = string(getenv("HOME"));
 const string kAppRootPath = kHome + "/" + kAppDir;
 const string kTaskRootPath = kAppRootPath + kTaskDir;
 
