@@ -15,7 +15,7 @@ TEMPLATE = app
 CONFIG += c++11
 
 INCLUDEPATH += ./include \
-                        ./include/ui
+               ./include/ui
 
 SOURCES += ./src/main.cpp\
         ./src/mainwindow.cpp \
@@ -94,4 +94,11 @@ LIBS += -L/usr/local/lib \
 
 LIBS += -L/usr/lib/x86_64-linux-gnu \
         -lrt
+
+
+LIBS += -L/usr/local/cuda/lib64 \
+        -lcublas \
+        -lcurand \
+        -lcudnn
+
 }

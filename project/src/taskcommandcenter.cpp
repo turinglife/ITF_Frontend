@@ -19,6 +19,9 @@ void TaskCommandCenter::OpenDaemon(const QString &daemon, const QString &operati
     std::transform(dae.begin(), dae.end(), dae.begin(), ::tolower);
     int status = 0;
 
+
+    std::cout<<"enter TaskCommandCenter::OpenDaemon function"<<std::endl;
+
     pid_t mpid = fork();
     switch (mpid) {
     case -1:
@@ -28,7 +31,7 @@ void TaskCommandCenter::OpenDaemon(const QString &daemon, const QString &operati
     {
         pid_t pid = fork();
         if (pid == 0) {
-            std::string path = "/home/lpzhang/Desktop/ITF_Backend/build/daemon/" + dae + ".bin";
+            std::string path = "/usr/local/itf/daemons/" + dae + ".bin";
             std::string arg0 = dae + ".bin_" + task_name_;
             std::string arg1 =  task_name_;
             char* parmList[] = {const_cast<char*>(arg0.c_str()), const_cast<char*>(arg1.c_str()), 0};
