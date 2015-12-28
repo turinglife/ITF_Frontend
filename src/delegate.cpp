@@ -19,6 +19,7 @@ void Delegate::Init(std::vector<std::map<string, string> > task_info, int channe
     camera_started_ = false;
     task_started_ = false;
     alarm_started_ = false;
+    video_finished_ = false;
 
     fps_ = 20;
 
@@ -445,7 +446,11 @@ void Delegate::OnTaskStoped()
     if (task_info_["alarm_switch"] == kStatusON) {
         StopMD();
     }
-    p_src_clip_->set_clip_controler(true, true, false, false, true);
+    if (video_finished_) {
+        p_src_clip_->set_clip_controler(true, false, false, false, false);
+    } else {
+        p_src_clip_->set_clip_controler(true, true, false, false, true);
+    }
 }
 
 void Delegate::OnThreadFInished()
@@ -527,11 +532,13 @@ bool Delegate::IsReadyToStartAD()
 
 bool Delegate::VideoIsFinished()
 {
-    p_src_clip_->set_clip_controler(true, false, false, false, false);
+    video_finished_ = true;
     // When Video is Finished, stop AD, CD
     if (task_started_) {
         // stop AD
         StopAD();
+    } else {
+        p_src_clip_->set_clip_controler(true, false, false, false, false);
     }
 
     int index=0;

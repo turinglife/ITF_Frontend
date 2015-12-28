@@ -109,6 +109,7 @@ private:
     bool camera_started_;
     bool task_started_;
     bool alarm_started_;
+    bool video_finished_;
 
     QTimer timer_;
     QThread thread_;
