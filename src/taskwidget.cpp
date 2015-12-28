@@ -108,10 +108,13 @@ void TaskWidget::OnBtnBackClicked()
         break;
     case 2:  // task camera
         p_stackedwidget_->setCurrentIndex(1);
+        if (task_type_ != kTaskTypeCounting) {
+            p_next_->setText("Next>>");
+        }
         break;
     case 3:  // task alarm
         p_stackedwidget_->setCurrentIndex(2);
-        p_next_->setText("Next>");
+        p_next_->setText("Next>>");
         break;
     }
 }
@@ -130,32 +133,24 @@ void TaskWidget::OnBtnNextClicked()
         if (!set_task_type())
             return;
         p_stackedwidget_->setCurrentIndex(2);
+        if (task_type_ != kTaskTypeCounting) {
+            p_next_->setText("Finish");
+        }
         break;
     case 2: // task camera
         if (!set_task_camera())
             return;
-        p_stackedwidget_->setCurrentIndex(3);
-        p_next_->setText("Finish");
+        if (task_type_ == kTaskTypeCounting) {
+            p_stackedwidget_->setCurrentIndex(3);
+            p_next_->setText("Finish");
+        } else {
+            OnBtnFinishClicked();
+        }
         break;
     case 3: // task alarm
         if (!set_alarm_strategy())
             return;
-
-        // Insert To DB When Clicked Finish Button;
-        if (!InsertNewTaskToDB()) {
-            QMessageBox::critical(NULL, "Create Task", "DB Error!", QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
-            return;
-        }
-
-        /* Create Folder For ROI, Pers, LM, Alarm and GT
-         * Delete Task From DB When Create Folder Failed */
-        if (!CreateFiles()) {
-            DBHelper::DeleteFromTable("Tasks", "task_name", task_name_);
-            return;
-        }
-
-        QMessageBox::information(NULL, "Create Task", "Success!", QMessageBox::Ok | QMessageBox::Ok);
-        emit InsertTaskFinished();
+        OnBtnFinishClicked();
         break;
     }
 }
@@ -280,4 +275,22 @@ bool TaskWidget::InsertNewTaskToDB()
     }
 
     return true;
+}
+
+void TaskWidget::OnBtnFinishClicked()
+{
+    // Insert To DB When Clicked Finish Button;
+    if (!InsertNewTaskToDB()) {
+        QMessageBox::critical(NULL, "Create Task", "DB Error!", QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
+        return;
+    }
+
+    /* Create Folder For ROI, Pers, LM, Alarm and GT
+      * Delete Task From DB When Create Folder Failed */
+    if (!CreateFiles()) {
+        DBHelper::DeleteFromTable("Tasks", "task_name", task_name_);
+        return;
+    }
+
+    emit InsertTaskFinished();
 }
