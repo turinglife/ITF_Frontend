@@ -37,6 +37,8 @@ private:
     bool CreateFiles();
     bool InsertNewTaskToDB();
 
+    void OnBtnFinishClicked();
+
     QListWidget *p_task_list_;
     QStackedWidget *p_stackedwidget_;
     UTName *p_utname_;
