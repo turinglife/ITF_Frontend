@@ -1,6 +1,4 @@
 #include "intelligentvideoanalysis.h"
-
-
 #include <QStackedWidget>
 #include "alarmmodule.h"
 #include "cameramodule.h"
@@ -62,7 +60,7 @@ IntelligentVideoAnalysis::IntelligentVideoAnalysis(QWidget *parent)
 
 IntelligentVideoAnalysis::~IntelligentVideoAnalysis()
 {
-
+    std::cout << "release IntelligentVideoAnalysis" << std::endl;
 }
 
 void IntelligentVideoAnalysis::SetCurrentIndex(int index)

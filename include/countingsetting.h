@@ -25,6 +25,7 @@ public:
     void set_roi_points_images(cv::Mat img, QVector<QPointF> pts);
     void set_pers_points_images(cv::Mat img, QVector<QPointF> pts);
     void set_gt_points_images(QVector<cv::Mat> imgs, QVector<QVector<QPointF> > pts);
+
 signals:
     void ActionSnapshotTriggered();
     void CountingSettingFinished();
@@ -46,6 +47,7 @@ private slots:
 private:
     void UpdateBtnStatus(bool flag);
     void UpdateGTNum();
+    void release_momery();
 
     QToolBar *p_toolbar_;
 

@@ -16,7 +16,7 @@ USketchPadWidget::USketchPadWidget(QWidget *parent) : QWidget(parent)
 
 USketchPadWidget::~USketchPadWidget()
 {
-
+    std::cout << "release USketchPadWidget" << std::endl;
 }
 
 QVector<QPointF> USketchPadWidget::points()

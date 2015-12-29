@@ -12,7 +12,7 @@ UPlotWidget::UPlotWidget(QWidget *parent)
 
 UPlotWidget::~UPlotWidget()
 {
-
+    std::cout << "release UPlotWidget" << std::endl;
 }
 
 void UPlotWidget::set_plot(double x_axis_min, double x_axis_max, string type)

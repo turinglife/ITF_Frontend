@@ -76,4 +76,3 @@ void UTaskTree::OnCustomContextMenuRequested(const QPoint &pos)
 
     menu->popup(mapToGlobal(pos));
 }
-

@@ -138,6 +138,7 @@ void UClipBoard::ShowChannel9()
         }
     }
 }
+
 void UClipBoard::RemoveLayout()
 {
     for (int i=0; i<3; i++) {
@@ -152,4 +153,3 @@ void UClipBoard::RemoveLayout()
         }
     }
 }
-

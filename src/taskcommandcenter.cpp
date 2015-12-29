@@ -11,7 +11,8 @@ TaskCommandCenter::TaskCommandCenter(std::string task_name, QObject *parent)
 
 TaskCommandCenter::~TaskCommandCenter()
 {
-
+    std::cout << "releaseTaskCommandCenter begin" << std::endl;
+    std::cout << "releaseTaskCommandCenter done" << std::endl;
 }
 
 void TaskCommandCenter::OpenTask(const QString &daemon, const QString &operation)

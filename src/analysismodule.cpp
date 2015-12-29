@@ -48,7 +48,8 @@ AnalysisModule::AnalysisModule(QWidget *parent) : QWidget(parent)
 
 AnalysisModule::~AnalysisModule()
 {
-
+    std::cout << "release AnalysisModule" << std::endl;
+    release_momery();
 }
 
 void AnalysisModule::Init()
@@ -182,6 +183,7 @@ void AnalysisModule::RemoveFromChannel(int channel)
 
     // Setup Disconnection
     disconnect(p_delegate_, SIGNAL(RemoveFromChannel(int)), this, SLOT(RemoveFromChannel(int)));
+    disconnect(p_delegate_, SIGNAL(ShowClipAnalysisBoard(int)), this, SLOT(ShowClipAnalysisBoard(int)));
 
     // Remove delegate from Hash
     delegate_hash_.remove(channel);
@@ -206,6 +208,11 @@ void AnalysisModule::ShowClipBoard(int channel)
     // Insert Src to Clipboard
     // recover task_type for src_clip
     p_delegate_->src_clip()->set_curr_type(p_clip_analysis_board_->task_type());
+    p_delegate_->src_clip()->setVisible(true);
+    p_delegate_->dst_clip()->setVisible(false);
+    p_delegate_->plot()->setVisible(false);
+    p_delegate_->clip_alarm()->setVisible(false);
+
     p_clip_board_->set_channel(channel, p_delegate_->src_clip());
 
     // Show TaskBoard
@@ -228,17 +235,16 @@ void AnalysisModule::ShowClipAnalysisBoard(int channel)
 
     // Insert Src, Dst and Plot(if any) to ClipAnalysisBoard
     p_clip_analysis_board_->layouts()[1]->addWidget(p_delegate_->src_clip());
+    p_clip_analysis_board_->layouts()[1]->addWidget(p_delegate_->dst_clip());
     p_delegate_->src_clip()->setVisible(true);
     p_delegate_->src_clip()->set_curr_type("");
-
-    p_clip_analysis_board_->layouts()[1]->addWidget(p_delegate_->dst_clip());
     p_delegate_->dst_clip()->setVisible(true);
 
     if (p_delegate_->task_info()["task_type"] == kTaskTypeCounting) {
-        p_clip_analysis_board_->layouts()[2]->addWidget(p_delegate_->plot());
-        p_delegate_->plot()->setVisible(true);
         p_clip_analysis_board_->layouts()[0]->addWidget(p_delegate_->clip_alarm());
+        p_clip_analysis_board_->layouts()[2]->addWidget(p_delegate_->plot());
         p_delegate_->clip_alarm()->setVisible(true);
+        p_delegate_->plot()->setVisible(true);
     }
 
     // Show ClipAnalysisBoard
@@ -346,3 +352,13 @@ void AnalysisModule::CreateDelegate(std::vector<std::map<string, string> > &res,
     connect(p_delegate_, SIGNAL(ShowClipAnalysisBoard(int)), this, SLOT(ShowClipAnalysisBoard(int)));
 }
 
+void AnalysisModule::release_momery()
+{
+    for (int i=0; i<9; i++) {
+        if (!delegate_hash_.contains(i))
+            continue;
+        p_delegate_ = delegate_hash_.value(i);
+        delegate_hash_.remove(i);
+        delete p_delegate_;
+    }
+}
