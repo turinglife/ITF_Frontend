@@ -8,12 +8,14 @@ Delegate::Delegate(QWidget *parent) : QWidget(parent)
 
 Delegate::~Delegate()
 {
-
+    std::cout << "release Delegate begin" << std::endl;
+    release_momery();
+    std::cout << "release Delegate done" << std::endl;
 }
 
 void Delegate::Init(std::vector<std::map<string, string> > task_info, int channel)
 {
-    //! [Init Parameters]
+//! [Init Parameters]
     task_info_ = task_info[0];
     curr_channel_ = channel;
     camera_started_ = false;
@@ -23,7 +25,7 @@ void Delegate::Init(std::vector<std::map<string, string> > task_info, int channe
 
     fps_ = 20;
 
-    // Take care of Wrong Case
+//! Take care of Wrong Case
     if (task_info_["camera_status"] == kStatusOFF && task_info_["task_status"] == kStatusON) {
         task_info_["task_status"] = kStatusOFF;
         if (!DBHelper::UpdateStatusToTasks("task_status", task_info_["task_status"], task_info_["task_name"])) {
@@ -32,19 +34,19 @@ void Delegate::Init(std::vector<std::map<string, string> > task_info, int channe
         }
     }
 
-    //! [Create new thread for execute command]
+//! [Create new thread for execute command]
     p_command_center_ = new TaskCommandCenter(task_info_["task_name"], 0);
     p_command_center_->moveToThread(&thread_);
 
-    //! [Create and Setup clipwidget for src and dst]
+//! [Create and Setup clipwidget for src and dst]
 #ifdef USE_GLWIDGET
     p_src_clip_ = new UClipGLWidget(0);
     p_dst_clip_ = new UClipGLWidget(0);
     Utility::SetWdgSizePolicy(p_src_clip_, QSizePolicy::Ignored, QSizePolicy::Ignored);
     Utility::SetWdgSizePolicy(p_dst_clip_, QSizePolicy::Ignored, QSizePolicy::Ignored);
 #else
-    p_src_clip_ = new UClipWidget(0);
-    p_dst_clip_ = new UClipWidget(0);
+    p_src_clip_ = new UClipWidget(this);
+    p_dst_clip_ = new UClipWidget(this);
     Utility::SetLabelStyle(p_src_clip_);
     Utility::SetLabelStyle(p_dst_clip_);
 #endif
@@ -53,33 +55,29 @@ void Delegate::Init(std::vector<std::map<string, string> > task_info, int channe
     p_src_clip_->setVisible(false);
     p_dst_clip_->setVisible(false);
 
-    //! [Create plot for Counting Tasks]
-    if (task_info_["task_type"] == kTaskTypeCounting) {
-        p_plot_ = new UPlotWidget(this);
-        p_plot_->clear_plot();
-
-        Utility::SetWdgSizePolicy(p_plot_, QSizePolicy::Expanding, QSizePolicy::Expanding);
-        p_plot_->setVisible(false);
-        // currently view video as camera
-        double curr_datetime = QDateTime::currentDateTime().toMSecsSinceEpoch()/1000.0;
-        p_plot_->set_plot(curr_datetime, curr_datetime+90.0, kCameraTypeHttp);
+//! [Create plot for Counting Tasks]
+    p_plot_ = new UPlotWidget(this);
+    p_plot_->clear_plot();
+    Utility::SetWdgSizePolicy(p_plot_, QSizePolicy::Expanding, QSizePolicy::Expanding);
+    p_plot_->setVisible(false);
+    // currently view video as camera
+    double curr_datetime = QDateTime::currentDateTime().toMSecsSinceEpoch()/1000.0;
+    p_plot_->set_plot(curr_datetime, curr_datetime+90.0, kCameraTypeHttp);
 
 //! [Alarm]
-
-        p_clip_alarm_ = new UClipAlarmWidget(this);
-        std::vector<std::map<std::string, std::string> > res_alarm_strategy;
-        if (!DBHelper::SelectFromTable("DensityAlarmStrategy", "task_name", task_info_["task_name"], res_alarm_strategy)) {
-            return;
-        }
-        if (res_alarm_strategy.empty()) {
-            std::string priority = "0";
-            p_clip_alarm_->set_alarm_strategy(false, priority, priority, priority);
-        } else {
-            p_clip_alarm_->set_alarm_strategy(true, res_alarm_strategy[0]["priority_low"], res_alarm_strategy[0]["priority_medium"], res_alarm_strategy[0]["priority_high"]);
-        }
+    p_clip_alarm_ = new UClipAlarmWidget(this);
+    p_clip_alarm_->setVisible(false);
+    std::vector<std::map<std::string, std::string> > res_alarm_strategy;
+    if (!DBHelper::SelectFromTable("DensityAlarmStrategy", "task_name", task_info_["task_name"], res_alarm_strategy))
+        return;
+    if (res_alarm_strategy.empty()) {
+        std::string priority = "0";
+        p_clip_alarm_->set_alarm_strategy(false, priority, priority, priority);
+    } else {
+        p_clip_alarm_->set_alarm_strategy(true, res_alarm_strategy[0]["priority_low"], res_alarm_strategy[0]["priority_medium"], res_alarm_strategy[0]["priority_high"]);
     }
 
-    //! [Setup Connecton]
+//! [Setup Connecton]
     connect(p_command_center_, SIGNAL(CommandExecuted(QString,QString,bool)), this, SLOT(MessageReceiver(QString,QString,bool)));
     connect(this, SIGNAL(CameraStoped()), p_command_center_, SLOT(deleteLater()));
     connect(this, SIGNAL(CameraStoped()), &thread_, SLOT(quit()));
@@ -467,7 +465,9 @@ void Delegate::OnShowClipAnalysisBoardClicked()
 
 void Delegate::OnCountingSettingClicked()
 {
+//! [p_countingsetting]
     p_countingsetting_ = new CountingSetting(0);
+
     // resize counting setting window
     p_countingsetting_->setMinimumSize(kSketchpadWidth, kSketchpadHeight);
     Utility::MoveToCenter(p_countingsetting_);
@@ -631,5 +631,13 @@ void Delegate::WriteCountingSetting()
 
     /* Open RD Daemon For Train LM */
     StartRD();
+}
+
+void Delegate::release_momery()
+{
+    delete p_src_clip_;
+    delete p_dst_clip_;
+    delete p_plot_;
+    delete p_clip_alarm_;
 }
 

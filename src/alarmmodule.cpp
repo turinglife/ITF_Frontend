@@ -16,7 +16,7 @@ AlarmModule::AlarmModule(QWidget *parent) : QWidget(parent)
     p_alarm_model_ = new TableModel(this);
 
 //![Filter Model]
-    p_filter_model_ = new AlarmFilterModel(0);
+    p_filter_model_ = new AlarmFilterModel(this);
     p_filter_model_->setSourceModel(p_alarm_model_);
 
 //! [Left]
@@ -68,7 +68,7 @@ AlarmModule::AlarmModule(QWidget *parent) : QWidget(parent)
 
 
 //! [TreeView]
-    p_treeview_ = new QTreeView;
+    p_treeview_ = new QTreeView(this);
     p_treeview_->setRootIsDecorated(false);
     p_treeview_->setAlternatingRowColors(true);
     p_treeview_->setModel(p_filter_model_);
@@ -139,7 +139,7 @@ AlarmModule::AlarmModule(QWidget *parent) : QWidget(parent)
 
 AlarmModule::~AlarmModule()
 {
-
+    std::cout << "release AlarmModule" << std::endl;
 }
 
 void AlarmModule::set_clear()

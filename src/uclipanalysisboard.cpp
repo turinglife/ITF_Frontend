@@ -71,6 +71,7 @@ UClipAnalysisBoard::UClipAnalysisBoard(QWidget *parent) : QWidget(parent)
 
 UClipAnalysisBoard::~UClipAnalysisBoard()
 {
+
 }
 
 void UClipAnalysisBoard::set_task_name(string task_name)

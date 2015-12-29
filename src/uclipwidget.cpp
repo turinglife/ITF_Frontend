@@ -48,7 +48,7 @@ UClipWidget::UClipWidget(QWidget *parent) : QLabel(parent)
 
 UClipWidget::~UClipWidget()
 {
-
+    std::cout << "release UClipWidget" << std::endl;
 }
 
 void UClipWidget::set_clip_controler(bool fclear, bool fstart, bool fstop, bool fshow, bool fsetting)

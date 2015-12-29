@@ -86,7 +86,9 @@ CountingSetting::CountingSetting(QWidget *parent) : QMainWindow(parent)
 
 CountingSetting::~CountingSetting()
 {
-
+//    std::cout << "release CountingSetting begin" << std::endl;
+//    release_momery();
+//    std::cout << "release CountingSetting done" << std::endl;
 }
 
 QVector<QPointF> CountingSetting::roi_points() const
@@ -151,6 +153,21 @@ void CountingSetting::set_gt_points_images(QVector<cv::Mat> imgs, QVector<QVecto
     }
 
     UpdateGTNum();
+}
+
+void CountingSetting::release_momery()
+{
+    std::cout << "release sketchpad_gt_" << std::endl;
+    while (!sketchpad_gt_.isEmpty()) {
+        USketchPadWidget *p_sketchpad = sketchpad_gt_.last();
+        sketchpad_gt_.pop_back();
+        p_sketchpad->deleteLater();
+    }
+
+    std::cout << "release sketchpad_pers_" << std::endl;
+    p_sketchpad_pers_->deleteLater();
+    std::cout << "release sketchpad_roi_" << std::endl;
+    p_sketchpad_roi_->deleteLater();
 }
 
 void CountingSetting::Snapshot(cv::Mat img)

@@ -12,6 +12,7 @@ ULightWidget::ULightWidget(const QColor &color, QWidget *parent)
 
 ULightWidget::~ULightWidget()
 {
+
 }
 
 void ULightWidget::setOn(bool on)
