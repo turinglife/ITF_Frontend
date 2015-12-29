@@ -86,9 +86,8 @@ CountingSetting::CountingSetting(QWidget *parent) : QMainWindow(parent)
 
 CountingSetting::~CountingSetting()
 {
-//    std::cout << "release CountingSetting begin" << std::endl;
-//    release_momery();
-//    std::cout << "release CountingSetting done" << std::endl;
+    std::cout << "release CountingSetting" << std::endl;
+    release_momery();
 }
 
 QVector<QPointF> CountingSetting::roi_points() const

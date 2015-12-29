@@ -18,9 +18,6 @@ signals:
 
 public slots:
 
-protected:
-//    void paintEvent(QPaintEvent *event);
-
 private slots:
     void SetCurrentIndex(int index);
 
