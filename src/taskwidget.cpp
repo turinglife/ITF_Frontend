@@ -215,15 +215,16 @@ bool TaskWidget::set_alarm_strategy()
             return false;
         }
 
-        if ((p_utalarmcounting_->priority_low() >= p_utalarmcounting_->priority_medium()) || p_utalarmcounting_->priority_medium() >= p_utalarmcounting_->priority_high()) {
+        priority_low_ = p_utalarmcounting_->priority_low().toInt();
+        priority_medium_ = p_utalarmcounting_->priority_medium().toInt();
+        priority_high_ = p_utalarmcounting_->priority_high().toInt();
+
+        if ((priority_low_ >= priority_medium_) || priority_medium_ >= priority_high_) {
             p_utalarmcounting_->set_warning(QString("priority must satisfy: low < medium < high !"));
             return false;
         }
 
         alarm_switch_ = kStatusON;
-        priority_low_ = p_utalarmcounting_->priority_low().toInt();
-        priority_medium_ = p_utalarmcounting_->priority_medium().toInt();
-        priority_high_ = p_utalarmcounting_->priority_high().toInt();
     } else {
         alarm_switch_ = kStatusOFF;
     }
