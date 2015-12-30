@@ -223,9 +223,12 @@ bool AlarmModule::ShowImage(string task_name, QString img_name)
     cv::Mat img_src = cv::imread(src_path.toStdString());
     cv::Mat img_dst = cv::imread(dst_path.toStdString());
 
+    if (!img_src.empty())
+        cv::cvtColor(img_src, img_src, CV_BGR2RGB);
 
-    cv::cvtColor(img_src, img_src, CV_BGR2RGB);
-    cv::cvtColor(img_dst, img_dst, CV_BGR2RGB);
+    if (!img_dst.empty())
+        cv::cvtColor(img_dst, img_dst, CV_BGR2RGB);
+
     p_frame_src_->ShowImage(img_src);
     p_frame_dst_->ShowImage(img_dst);
 

@@ -180,6 +180,8 @@ void Delegate::PlayCamera()
             }
             return;
         }
+        if (curr_src_.empty())
+            return;
         cv::cvtColor(curr_src_, curr_src_, CV_BGR2RGB);
         cv::Mat img_src = curr_src_.clone();
 
@@ -189,6 +191,8 @@ void Delegate::PlayCamera()
             cv::Mat img_src_discard = cv::Mat::zeros(frame_height_, frame_width_, CV_8UC3);
             unsigned int timestamp_discard;
             if (buffer_.fetch_dst(img_src_discard, curr_dst_, curr_count_, timestamp_discard)) {
+                if (curr_dst_.empty())
+                    return;
                 cv::cvtColor(curr_dst_, curr_dst_, CV_BGR2RGB);
                 // counting task, Plot, view video as camera
                 if (task_info_["task_type"] == kTaskTypeCounting) {
