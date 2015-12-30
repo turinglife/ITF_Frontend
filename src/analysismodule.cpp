@@ -49,7 +49,7 @@ AnalysisModule::AnalysisModule(QWidget *parent) : QWidget(parent)
 AnalysisModule::~AnalysisModule()
 {
     std::cout << "release AnalysisModule" << std::endl;
-    release_momery();
+    release_memory();
 }
 
 void AnalysisModule::Init()
@@ -352,7 +352,7 @@ void AnalysisModule::CreateDelegate(std::vector<std::map<string, string> > &res,
     connect(p_delegate_, SIGNAL(ShowClipAnalysisBoard(int)), this, SLOT(ShowClipAnalysisBoard(int)));
 }
 
-void AnalysisModule::release_momery()
+void AnalysisModule::release_memory()
 {
     for (int i=0; i<9; i++) {
         if (!delegate_hash_.contains(i))

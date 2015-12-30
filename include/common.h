@@ -73,7 +73,7 @@ const string pass = "itf";
 const string db_name = "ITF";
 
 /* Daemon */
-const string kDaemonPath = kHome + "/ITF_Backend/build/daemon/";
+const string kDaemonPath = kHome + "/github/ITF_Backend/build/daemon/";
 const string kDaemonAD = "AD";
 const string kDaemonCD = "CD";
 const string kDaemonRD = "RD";

@@ -9,7 +9,7 @@ Delegate::Delegate(QWidget *parent) : QWidget(parent)
 Delegate::~Delegate()
 {
     std::cout << "release Delegate begin" << std::endl;
-    release_momery();
+    release_memory();
     std::cout << "release Delegate done" << std::endl;
 }
 
@@ -536,6 +536,7 @@ bool Delegate::IsReadyToStartAD()
 
 bool Delegate::VideoIsFinished()
 {
+    std::cout << "video is finished" << std::endl;
     video_finished_ = true;
     // When Video is Finished, stop AD, CD
     if (task_started_) {
@@ -637,7 +638,7 @@ void Delegate::WriteCountingSetting()
     StartRD();
 }
 
-void Delegate::release_momery()
+void Delegate::release_memory()
 {
     delete p_src_clip_;
     delete p_dst_clip_;

@@ -47,7 +47,7 @@ private slots:
 private:
     void UpdateBtnStatus(bool flag);
     void UpdateGTNum();
-    void release_momery();
+    void release_memory();
 
     QToolBar *p_toolbar_;
 
