@@ -35,7 +35,7 @@ private:
     bool LoadTasksInfo();
     void CreateDelegate(std::vector<std::map<std::string, std::string> > &res, int channel);
 
-    void release_momery();
+    void release_memory();
 
     QStackedWidget *p_stackedwidget_;
     UTaskTree *p_task_tree_;

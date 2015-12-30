@@ -80,7 +80,7 @@ private:
     bool ReadCountingSetting();
     void WriteCountingSetting();
 
-    void release_momery();
+    void release_memory();
 
     std::map<std::string, std::string> task_info_;
     int curr_channel_;
