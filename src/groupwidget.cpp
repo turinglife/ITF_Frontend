@@ -69,8 +69,6 @@ void GroupWidget::OnBtnFinishClicked()
         return;
     }
 
-    QMessageBox::information(NULL, "Create Groups", "Success!", QMessageBox::Ok, QMessageBox::Ok);
-
     emit GroupCreated();
 }
 
