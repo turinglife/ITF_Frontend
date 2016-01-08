@@ -578,12 +578,12 @@ bool Delegate::ReadCountingSetting()
         return false;
     std::string roi_path = task_info_["task_path"] + kROIDir + res[0]["roi_file"];
     std::string pers_path= task_info_["task_path"] + kPersDir + res[0]["pers_file"];
-    std::string gt_dir = task_info_["task_path"] + kGTDir;
+//    std::string gt_dir = task_info_["task_path"] + kGTDir;
 
     QVector<QPointF> roi_points;
     QVector<QPointF> pers_points;
-    QVector<QVector<QPointF> > gt_points;
-    QVector<cv::Mat> gt_images;
+//    QVector<QVector<QPointF> > gt_points;
+//    QVector<cv::Mat> gt_images;
 
     // Load ROI Points for Sketchpad
     if (!Utility::LoadPoints(roi_points, roi_path)) {
@@ -597,11 +597,11 @@ bool Delegate::ReadCountingSetting()
     }
     p_countingsetting_->set_pers_points_images(curr_src_, pers_points);
 
-    /* get img and label data from gt_dir */
-    if (!Utility::ReadGTData(gt_dir, gt_points, gt_images)) {
-        return false;
-    }
-    p_countingsetting_->set_gt_points_images(gt_images, gt_points);
+//    /* get img and label data from gt_dir */
+//    if (!Utility::ReadGTData(gt_dir, gt_points, gt_images)) {
+//        return false;
+//    }
+//    p_countingsetting_->set_gt_points_images(gt_images, gt_points);
 
     return true;
 }

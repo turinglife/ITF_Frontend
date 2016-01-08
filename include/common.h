@@ -115,10 +115,10 @@ enum DrawType {
 };
 
 /*countingsetting*/
-const int kMinAppWidth = 960;
-const int kMinAppHeight = 540;
-const int kSketchpadWidth = 640;
-const int kSketchpadHeight = 360;
+const int kMinAppWidth = 1280;
+const int kMinAppHeight = 720;
+const int kSketchpadWidth = 960;
+const int kSketchpadHeight = 540;
 const int kGroupWidth = 240;
 const int kGroupHeight = 180;
 const int kTaskWidth = 640;
