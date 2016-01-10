@@ -1,5 +1,4 @@
 #include "usketchpadwidget.h"
-#include <QLayout>
 
 USketchPadWidget::USketchPadWidget(QWidget *parent) : QWidget(parent)
 {

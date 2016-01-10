@@ -18,6 +18,9 @@ signals:
 
 public slots:
 
+protected:
+    void closeEvent(QCloseEvent *event);
+
 private slots:
     void SetCurrentIndex(int index);
 

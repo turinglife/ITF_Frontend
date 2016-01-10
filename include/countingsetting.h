@@ -33,6 +33,9 @@ signals:
 public slots:
     void Snapshot(cv::Mat img);
 
+protected:
+    void closeEvent(QCloseEvent *event);
+
 private slots:
     void OnActionDrawTriggered();
     void OnActionSnapshotTriggered();
@@ -45,9 +48,11 @@ private slots:
     void OnSketchPadFinished();
 
 private:
+    void ImageWithROI(cv::Mat &img);
     void UpdateBtnStatus(bool flag);
     void UpdateGTNum();
     void release_memory();
+    void set_btn_visible(bool flag_draw, bool flag_snapshot, bool flag_clear, bool flag_delete, bool flag_back, bool flag_next, bool flag_gt_prev, bool flag_gt_next, bool flag_gt_num);
 
     QToolBar *p_toolbar_;
 

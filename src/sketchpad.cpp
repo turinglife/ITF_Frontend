@@ -30,7 +30,6 @@ void Sketchpad::set_points(QVector<QPointF> pts)
 {
     points_.clear();
     points_ = pts;
-    update();
 }
 
 void Sketchpad::set_draw_finished(bool flag)
@@ -64,30 +63,17 @@ void Sketchpad::paintEvent(QPaintEvent *event)
 
 void Sketchpad::mousePressEvent(QMouseEvent *event)
 {
-    if (event->button() == Qt::LeftButton) {
+    if (event->button() == Qt::LeftButton && !draw_finished_) {
         end_point_ = PixelToPercentage(event->pos(), this->size().width(), this->size().height());
     }
-    if (event->button() == Qt::RightButton && !draw_finished_) {
-        draw_finished_ = true;
 
-        switch (draw_type_) {
-        case PersMap:
-            if (points_.size() %2) {
+    // right button single press is undo last points
+    if (event->button() == Qt::RightButton && !draw_finished_) {
+        if  (!points_.isEmpty()) {
                 points_.pop_back();
-            }
-            break;
-        case ROI:
-            if (points_.size() == 1) {
-                points_.pop_back();
-            }
-            break;
-        default:
-            break;
         }
 
         update();
-
-        emit DrawFinished();
     }
 }
 
@@ -111,8 +97,11 @@ void Sketchpad::mouseReleaseEvent(QMouseEvent *event)
 
 void Sketchpad::mouseDoubleClickEvent(QMouseEvent *event)
 {
-    if (event->button() == Qt::RightButton && draw_finished_) {
-        if  (!points_.isEmpty()) {
+    // leftbutton double click to end draw
+    if (event->button() == Qt::LeftButton && !draw_finished_) {
+        draw_finished_ = true;
+
+        if (!points_.isEmpty()) {
             switch (draw_type_) {
             case PersMap:
                 points_.pop_back();
@@ -120,17 +109,15 @@ void Sketchpad::mouseDoubleClickEvent(QMouseEvent *event)
                     points_.pop_back();
                 }
                 break;
-            case ROI:
-                points_.clear();
-                break;
             default:
                 points_.pop_back();
                 break;
             }
         }
-
+        std::cout << points_.size() << std::endl;
         update();
-//        draw_finished_ = false;
+
+        emit DrawFinished();
     }
 }
 

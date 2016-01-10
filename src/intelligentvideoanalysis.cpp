@@ -4,6 +4,7 @@
 #include "cameramodule.h"
 #include "analysismodule.h"
 #include "utility.h"
+#include <QCloseEvent>
 
 IntelligentVideoAnalysis::IntelligentVideoAnalysis(QWidget *parent)
     : QMainWindow(parent)
@@ -61,6 +62,14 @@ IntelligentVideoAnalysis::IntelligentVideoAnalysis(QWidget *parent)
 IntelligentVideoAnalysis::~IntelligentVideoAnalysis()
 {
     std::cout << "release IntelligentVideoAnalysis" << std::endl;
+}
+
+void IntelligentVideoAnalysis::closeEvent(QCloseEvent *event)
+{
+    if (QMessageBox::No == QMessageBox::question(NULL, "Information", "Close Application?", QMessageBox::Yes|QMessageBox::No, QMessageBox::No)) {
+        event->ignore();
+        return;
+    }
 }
 
 void IntelligentVideoAnalysis::SetCurrentIndex(int index)
