@@ -37,9 +37,8 @@ CountingSetting::CountingSetting(string task_type, QWidget *parent)
     if (task_type_ == kTaskTypeCounting) {
         p_guide_roi->setText(tr("Steps of Region of Interest (ROI)\n"
                               "\n"
-                              "1. Click \"Clear\" to clear history records (if any);\n"
-                              "2. Click \"Draw\" to enter DrawMode;\n"
-                              "3. Click on the image to draw ROI;\n"
+                              "1. Click \"Draw\" to enter DrawMode;\n"
+                              "2. Click on the image to draw ROI;\n"
                               "3. Double click to exit DrawMode;\n"
                               "4. Click \"Next\";\n"
                               "\n"
@@ -48,14 +47,9 @@ CountingSetting::CountingSetting(string task_type, QWidget *parent)
     } else if (task_type_ == kTaskTypeCrossline) {
         p_guide_roi->setText(tr("Steps of LINE of Interest (IOI)\n"
                               "\n"
-                              "1. Click \"Clear\" to clear history records (if any);\n"
-                              "2. Click \"Draw\" to enter DrawMode;\n"
-                              "3. Click on the image to draw Line;\n"
-                              "3. Double click to exit DrawMode;\n"
-                              "4. Click \"Next\";\n"
-                              "\n"
-                              "Notes: \n"
-                              "* Click \"Right Mouse\" on image to undo last point when you are in DrawMode;\n"));
+                              "1. Click \"Draw\" to draw a Line on image;\n"
+                              "2. Click \"Next\";\n"
+                              "\n"));
     }
     p_sketchpad_roi_ = new USketchPadWidget(this);
     if (task_type_ == kTaskTypeCounting) {
@@ -78,13 +72,12 @@ CountingSetting::CountingSetting(string task_type, QWidget *parent)
     p_guide_pers->setMaximumWidth(300);
     p_guide_pers->setText(tr("Steps of Pesestrain Size\n"
                              "\n"
-                             "1. Click \"Clear\" to clear history records (if any);\n"
-                             "2. Click \"Snapshot\" to get a image which contains at least 2 pedestrains who have different distance from camera;\n"
-                             "3. Click \"Draw\" to enter LabelMode;\n"
-                             "4. Draw rectangle to enclose pedestrain;\n"
-                             "5. Repeat step 4 to draw another pedestrain;\n"
-                             "6. Double click image to exit LabelMode;\n"
-                             "7. Click \"Next\";\n"
+                             "1. Click \"Snapshot\" to get a image which contains at least 2 pedestrains who have different distance from camera;\n"
+                             "2. Click \"Draw\" to enter LabelMode;\n"
+                             "3. Draw rectangle to enclose pedestrain;\n"
+                             "4. Repeat step 4 to draw another pedestrain;\n"
+                             "5. Double click image to exit LabelMode;\n"
+                             "6. Click \"Next(Finish)\";\n"
                              "\n"
                              "Notes: \n"
                              "* Click \"Right Mouse\" on image to undo last point when you are in DrawMode;\n"));
@@ -169,7 +162,7 @@ CountingSetting::CountingSetting(string task_type, QWidget *parent)
     p_layout->addLayout(p_lay_btn);
 
     setWindowTitle("Region of Interest");
-    set_btn_visible(true, false, true, false, false, true, false, false, false);
+    set_btn_visible(true, false, false, false, false, true, false, false, false);
 }
 
 CountingSetting::~CountingSetting()
@@ -327,8 +320,10 @@ void CountingSetting::OnActionDrawTriggered()
     UpdateBtnStatus(false);
 
     if (p_stackedwidget_main_->currentIndex() == 0) {
+        p_sketchpad_roi_->clear_sketchpad();
         p_sketchpad_roi_->set_draw_finished(false);
     } else if (p_stackedwidget_main_->currentIndex() == 1) {
+        p_sketchpad_pers_->clear_sketchpad();
         p_sketchpad_pers_->set_draw_finished(false);
     } else if (p_stackedwidget_main_->currentIndex() == 2) {
         if (img_gt_.isEmpty()) {
@@ -401,13 +396,13 @@ void CountingSetting::OnBtnBackClicked()
         } else {
             this->setWindowTitle(tr("Region of Interest"));
         }
-        set_btn_visible(true, false, true, false, false, true, false, false, false);
+        set_btn_visible(true, false, false, false, false, true, false, false, false);
     } else if (p_stackedwidget_main_->currentIndex() == 2) {
         p_stackedwidget_main_->setCurrentIndex(1);
         this->setWindowTitle(tr("Human Size"));
         p_next_->setText(tr("Next>>"));
         p_draw_->setText(tr("Draw"));
-        set_btn_visible(true, true, true, false, true, true, false, false, false);
+        set_btn_visible(true, true, false, false, true, true, false, false, false);
     } else {
         return;
     }
@@ -422,7 +417,7 @@ void CountingSetting::OnBtnNextClicked()
         }
         p_stackedwidget_main_->setCurrentIndex(1);
         this->setWindowTitle(tr("Human Size"));
-        set_btn_visible(true, true, true, false, true, true, false, false, false);
+        set_btn_visible(true, true, false, false, true, true, false, false, false);
         if (task_type_ == kTaskTypeCrossline) {
             p_next_->setText(tr("Finish"));
         }
