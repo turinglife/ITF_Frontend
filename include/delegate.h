@@ -38,7 +38,8 @@ public:
     UClipGLWidget *dst_clip() const;
 #else
     UClipWidget *src_clip();
-    UClipWidget *dst_clip() const;
+    UClipWidget *dst_clip_1() const;
+    UClipWidget *dst_clip_2() const;
 #endif
     UPlotWidget *plot() const;
     UClipAlarmWidget *clip_alarm();
@@ -91,16 +92,19 @@ private:
     UClipGLWidget *p_dst_clip_;
 #else
     UClipWidget *p_src_clip_;
-    UClipWidget *p_dst_clip_;
+    UClipWidget *p_dst_clip_1_;
+    UClipWidget *p_dst_clip_2_;
 #endif
 
     UPlotWidget *p_plot_;
     UClipAlarmWidget *p_clip_alarm_;
 
-    unsigned int timestamp_;
+    unsigned int curr_timestamp_;
     cv::Mat curr_src_;
-    cv::Mat curr_dst_;
-    int curr_count_;
+    cv::Mat curr_dst_1_;
+    cv::Mat curr_dst_2_;
+    int curr_count_1_;
+    int curr_count_2_;
 
     int fps_;
     int frame_width_;

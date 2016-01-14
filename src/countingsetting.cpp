@@ -11,8 +11,9 @@
 #include "utility.h"
 #include "usketchpadwidget.h"
 
-CountingSetting::CountingSetting(QWidget *parent)
+CountingSetting::CountingSetting(string task_type, QWidget *parent)
     : QMainWindow(parent)
+    , task_type_(task_type)
 {
     setAttribute(Qt::WA_DeleteOnClose);
     setWindowModality(Qt::ApplicationModal);
@@ -33,18 +34,35 @@ CountingSetting::CountingSetting(QWidget *parent)
     p_guide_roi->setAlignment(Qt::AlignTop);
     p_guide_roi->setWordWrap(true);
     p_guide_roi->setMaximumWidth(300);
-    p_guide_roi->setText(tr("Steps of Region of Interest (ROI)\n"
-                          "\n"
-                          "1. Click \"Clear\" to clear history records (if any);\n"
-                          "2. Click \"Draw\" to enter DrawMode;\n"
-                          "3. Click on the image to draw ROI;\n"
-                          "3. Double click to exit DrawMode;\n"
-                          "4. Click \"Next\";\n"
-                          "\n"
-                          "Notes: \n"
-                          "* Click \"Right Mouse\" on image to undo last point when you are in DrawMode;\n"));
+    if (task_type_ == kTaskTypeCounting) {
+        p_guide_roi->setText(tr("Steps of Region of Interest (ROI)\n"
+                              "\n"
+                              "1. Click \"Clear\" to clear history records (if any);\n"
+                              "2. Click \"Draw\" to enter DrawMode;\n"
+                              "3. Click on the image to draw ROI;\n"
+                              "3. Double click to exit DrawMode;\n"
+                              "4. Click \"Next\";\n"
+                              "\n"
+                              "Notes: \n"
+                              "* Click \"Right Mouse\" on image to undo last point when you are in DrawMode;\n"));
+    } else if (task_type_ == kTaskTypeCrossline) {
+        p_guide_roi->setText(tr("Steps of LINE of Interest (IOI)\n"
+                              "\n"
+                              "1. Click \"Clear\" to clear history records (if any);\n"
+                              "2. Click \"Draw\" to enter DrawMode;\n"
+                              "3. Click on the image to draw Line;\n"
+                              "3. Double click to exit DrawMode;\n"
+                              "4. Click \"Next\";\n"
+                              "\n"
+                              "Notes: \n"
+                              "* Click \"Right Mouse\" on image to undo last point when you are in DrawMode;\n"));
+    }
     p_sketchpad_roi_ = new USketchPadWidget(this);
-    p_sketchpad_roi_->set_draw_type(ROI);
+    if (task_type_ == kTaskTypeCounting) {
+        p_sketchpad_roi_->set_draw_type(ROI);
+    } else if (task_type_ == kTaskTypeCrossline) {
+        p_sketchpad_roi_->set_draw_type(LINE);
+    }
     p_splitter_roi->addWidget(p_guide_roi);
     p_splitter_roi->addWidget(p_sketchpad_roi_);
     p_splitter_roi->setStretchFactor(0,0);
@@ -273,6 +291,9 @@ void CountingSetting::Snapshot(cv::Mat img)
 //        p_sketchpad_pers_->clear_sketchpad();
         p_sketchpad_pers_->ShowImage(img);
     } else if (p_stackedwidget_main_->currentIndex() == 2) {
+        if (img_gt_.empty()) {
+            UpdateBtnStatus(true);
+        }
         img_gt_.push_back(img.clone());
         USketchPadWidget *p_sketchpad = new USketchPadWidget(this);
         p_sketchpad->set_draw_type(GTPoints);
@@ -362,16 +383,24 @@ void CountingSetting::OnActionDeleteTriggered()
 
     UpdateGTNum();
 
-//    if (p_stackedwidget_gt_->count() == 0) {
+    if (p_stackedwidget_gt_->count() == 0) {
+        UpdateBtnStatus(false);
+        p_snapshot_->setEnabled(true);
+        p_back_->setEnabled(true);
 //        emit ActionSnapshotTriggered();
-//    }
+    }
 }
 
 void CountingSetting::OnBtnBackClicked()
 {
     if (p_stackedwidget_main_->currentIndex() == 1) {
         p_stackedwidget_main_->setCurrentIndex(0);
-        this->setWindowTitle(tr("Region of Interest"));
+        if (p_sketchpad_pers_->points().empty()) {
+            this->setWindowTitle(tr("Line of Interest"));
+            p_next_->setText(tr("Next>>"));
+        } else {
+            this->setWindowTitle(tr("Region of Interest"));
+        }
         set_btn_visible(true, false, true, false, false, true, false, false, false);
     } else if (p_stackedwidget_main_->currentIndex() == 2) {
         p_stackedwidget_main_->setCurrentIndex(1);
@@ -388,12 +417,15 @@ void CountingSetting::OnBtnNextClicked()
 {
     if (p_stackedwidget_main_->currentIndex() == 0) {
         if (p_sketchpad_roi_->points().isEmpty()) {
-            QMessageBox::information(NULL, "Counting Setting", "Region of Interest is require!", QMessageBox::Ok, QMessageBox::Ok);
+            QMessageBox::information(NULL, "Setting", "Region of Interest is require!", QMessageBox::Ok, QMessageBox::Ok);
             return;
         }
         p_stackedwidget_main_->setCurrentIndex(1);
         this->setWindowTitle(tr("Human Size"));
         set_btn_visible(true, true, true, false, true, true, false, false, false);
+        if (task_type_ == kTaskTypeCrossline) {
+            p_next_->setText(tr("Finish"));
+        }
 
         // if p_sketchpad_pers_'s points is empty, then need snapshot
         if (p_sketchpad_pers_->points().empty()) {
@@ -401,14 +433,24 @@ void CountingSetting::OnBtnNextClicked()
         }
     } else if (p_stackedwidget_main_->currentIndex() == 1) {
         if (p_sketchpad_pers_->points().size()/2 < 2) {
-            QMessageBox::information(NULL, "Counting Setting", "Human Size at least two rectangles!", QMessageBox::Ok, QMessageBox::Ok);
+            QMessageBox::information(NULL, "Setting", "Human Size at least two rectangles!", QMessageBox::Ok, QMessageBox::Ok);
             return;
         }
+        if (task_type_ == kTaskTypeCrossline) {
+            emit CountingSettingFinished();
+            return;
+        }
+
         p_stackedwidget_main_->setCurrentIndex(2);
         this->setWindowTitle(tr("Label People"));
         p_next_->setText(tr("Finish"));
         p_draw_->setText(tr("Label"));
         set_btn_visible(true, true, true, true, true, true, true, true, true);
+        if (img_gt_.empty()) {
+            UpdateBtnStatus(false);
+            p_snapshot_->setEnabled(true);
+            p_back_->setEnabled(true);
+        }
 
         // draw ROI on image
         for (int i=0; i<img_gt_.size(); ++i) {
@@ -424,7 +466,7 @@ void CountingSetting::OnBtnNextClicked()
     } else if (p_stackedwidget_main_->currentIndex() == 2) {
         // counting setting finished, emit signal to delegate
         if (sketchpad_gt_.size() < 2) {
-            QMessageBox::information(NULL, "Counting Setting", "Please snapshot at least two Images!", QMessageBox::Ok, QMessageBox::Ok);
+            QMessageBox::information(NULL, "Setting", "Please snapshot at least two Images!", QMessageBox::Ok, QMessageBox::Ok);
             return;
         }
         emit CountingSettingFinished();

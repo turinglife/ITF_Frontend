@@ -10,7 +10,7 @@ UClipControler::UClipControler(QWidget *parent) : QWidget(parent)
     p_clear_ = new QPushButton(tr("Clear"), this);
     p_start_analyze_ = new QPushButton(tr("Start"), this);
     p_stop_analyze_ = new QPushButton(tr("Stop"), this);
-    p_show_analysis_ = new QPushButton(tr("Analysis"), this);
+    p_show_analysis_ = new QPushButton(tr("Details"), this);
     p_setting_ = new QPushButton(tr("Setting"), this);
 
     p_clear_->setEnabled(false);

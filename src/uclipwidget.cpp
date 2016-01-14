@@ -99,7 +99,7 @@ void UClipWidget::paintEvent(QPaintEvent *event)
 
 void UClipWidget::mouseMoveEvent(QMouseEvent *event)
 {
-    if (curr_type_ == kTaskTypeCounting || curr_type_ == kTaskTypeSegmentation || curr_type_ == kTaskTypeStationary) {
+    if (curr_type_ == kTaskTypeCounting || curr_type_ == kTaskTypeSegmentation || curr_type_ == kTaskTypeStationary || curr_type_ ==kTaskTypeCrossline) {
         int name_area = this->size().height() * 0.15;
         if (event->pos().y() < name_area) {
             p_clip_name_->setText(QString::fromStdString(curr_name_));
@@ -117,7 +117,7 @@ void UClipWidget::mouseMoveEvent(QMouseEvent *event)
 
 void UClipWidget::leaveEvent(QEvent *)
 {
-    if (curr_type_ == kTaskTypeCounting || curr_type_ == kTaskTypeSegmentation || curr_type_ == kTaskTypeStationary) {
+    if (curr_type_ == kTaskTypeCounting || curr_type_ == kTaskTypeSegmentation || curr_type_ == kTaskTypeStationary || curr_type_ ==kTaskTypeCrossline) {
         p_clip_controler_->hide();
         p_clip_name_->hide();
     }

@@ -29,7 +29,6 @@ void TaskWidget::Init(QString group_name)
     group_name_ = group_name.toStdString();
     task_status_ = kStatusOFF;
     camera_status_ = kStatusOFF;
-    report_switch_ = kStatusOFF;
 
     QVBoxLayout *p_layout = new QVBoxLayout;
 //! [widget_main]
@@ -253,7 +252,7 @@ bool TaskWidget::CreateFiles()
 
 bool TaskWidget::InsertNewTaskToDB()
 {
-    if (!DBHelper::InsertToTasks(task_name_, task_type_, task_status_, camera_type_, camera_status_, task_path_, alarm_switch_, report_switch_, group_name_))
+    if (!DBHelper::InsertToTasks(task_name_, task_type_, task_status_, camera_type_, camera_status_, task_path_, alarm_switch_, group_name_))
         return false;
 
     if (camera_type_ == kCameraTypeFile) {

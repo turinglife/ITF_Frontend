@@ -91,6 +91,13 @@ void Sketchpad::mouseReleaseEvent(QMouseEvent *event)
 {
     if (event->button() == Qt::LeftButton && !draw_finished_) {
         points_.push_back(end_point_);
+
+        if (draw_type_ == LINE) {
+            if (points().size() == 2) {
+                draw_finished_ = true;
+                emit DrawFinished();
+            }
+        }
         update();
     }
 }
@@ -104,6 +111,7 @@ void Sketchpad::mouseDoubleClickEvent(QMouseEvent *event)
         if (!points_.isEmpty()) {
             switch (draw_type_) {
             case PersMap:
+            case LINE:
                 points_.pop_back();
                 if (points_.size() % 2) {
                     points_.pop_back();
@@ -114,7 +122,7 @@ void Sketchpad::mouseDoubleClickEvent(QMouseEvent *event)
                 break;
             }
         }
-        std::cout << points_.size() << std::endl;
+//        std::cout << points_.size() << std::endl;
         update();
 
         emit DrawFinished();
@@ -150,7 +158,7 @@ void Sketchpad::RenderSketch()
             }
         }
 
-        if (draw_type_ == ROI) {
+        if (draw_type_ == ROI || draw_type_ == LINE) {
             for (int i=0; i<points_.size()-1; ++i) {
                 QPointF point1 = PercentageToPixel(points_[i], this->size().width(), this->size().height());
                 QPointF point2 = PercentageToPixel(points_[i+1], this->size().width(), this->size().height());
@@ -174,7 +182,7 @@ void Sketchpad::RenderSketch()
                 }
             }
 
-            if (draw_type_ == ROI) {
+            if (draw_type_ == ROI || draw_type_ == LINE) {
                 QPointF point1 = PercentageToPixel(points_.first(), this->size().width(), this->size().height());
                 QPointF point2 = PercentageToPixel(points_.last(), this->size().width(), this->size().height());
                 QPointF point3 = PercentageToPixel(end_point_, this->size().width(), this->size().height());
