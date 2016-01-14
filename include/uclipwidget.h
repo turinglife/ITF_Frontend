@@ -17,6 +17,11 @@ public:
     }
     inline void set_curr_type(const string &type) {
         curr_type_ = type;
+        if (type == kTaskTypeCounting || type==kTaskTypeCrossline) {
+           p_clip_controler_->p_setting_->setVisible(true);
+        } else {
+           p_clip_controler_->p_setting_->setVisible(false);
+        }
     }
     void set_clip_controler(bool fclear, bool fstart, bool fstop, bool fshow, bool fsetting);
 

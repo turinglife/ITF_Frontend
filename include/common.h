@@ -94,6 +94,7 @@ const int kMaxConnectionTimes = 20;
 const string kTaskTypeCounting = "COUNTING";
 const string kTaskTypeSegmentation = "SEGMENTATION";
 const string kTaskTypeStationary = "STATIONARY";
+const string kTaskTypeCrossline = "CROSSLINE";
 
 /* Camera type */
 const string kCameraTypeFile = "FILE";
@@ -111,7 +112,8 @@ const string kPriorityHigh = "HIGH";
 enum DrawType {
     ROI = 0,
     PersMap = 1,
-    GTPoints = 2
+    GTPoints = 2,
+    LINE = 3
 };
 
 /*countingsetting*/

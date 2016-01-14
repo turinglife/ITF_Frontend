@@ -14,7 +14,7 @@ class CountingSetting : public QMainWindow
 {
     Q_OBJECT
 public:
-    explicit CountingSetting(QWidget *parent = 0);
+    explicit CountingSetting(std::string task_type, QWidget *parent = 0);
     ~CountingSetting();
 
     QVector<QPointF> roi_points() const;
@@ -74,6 +74,8 @@ private:
     QPushButton *p_gt_prev_;
     QPushButton *p_gt_next_;
     QLabel *p_gt_num_;
+
+    std::string task_type_;
 };
 
 #endif // COUNTINGSETTING_H

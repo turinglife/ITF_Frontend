@@ -209,7 +209,8 @@ void AnalysisModule::ShowClipBoard(int channel)
     // recover task_type for src_clip
     p_delegate_->src_clip()->set_curr_type(p_clip_analysis_board_->task_type());
     p_delegate_->src_clip()->setVisible(true);
-    p_delegate_->dst_clip()->setVisible(false);
+    p_delegate_->dst_clip_1()->setVisible(false);
+    p_delegate_->dst_clip_2()->setVisible(false);
     p_delegate_->plot()->setVisible(false);
     p_delegate_->clip_alarm()->setVisible(false);
 
@@ -235,16 +236,24 @@ void AnalysisModule::ShowClipAnalysisBoard(int channel)
 
     // Insert Src, Dst and Plot(if any) to ClipAnalysisBoard
     p_clip_analysis_board_->layouts()[1]->addWidget(p_delegate_->src_clip());
-    p_clip_analysis_board_->layouts()[1]->addWidget(p_delegate_->dst_clip());
     p_delegate_->src_clip()->setVisible(true);
     p_delegate_->src_clip()->set_curr_type("");
-    p_delegate_->dst_clip()->setVisible(true);
 
     if (p_delegate_->task_info()["task_type"] == kTaskTypeCounting) {
         p_clip_analysis_board_->layouts()[0]->addWidget(p_delegate_->clip_alarm());
-        p_clip_analysis_board_->layouts()[2]->addWidget(p_delegate_->plot());
         p_delegate_->clip_alarm()->setVisible(true);
+        p_clip_analysis_board_->layouts()[1]->addWidget(p_delegate_->dst_clip_1());
+        p_delegate_->dst_clip_1()->setVisible(true);
+        p_clip_analysis_board_->layouts()[2]->addWidget(p_delegate_->plot());
         p_delegate_->plot()->setVisible(true);
+    } else if (p_delegate_->task_info()["task_type"] == kTaskTypeCrossline) {
+        p_clip_analysis_board_->layouts()[2]->addWidget(p_delegate_->dst_clip_1());
+        p_delegate_->dst_clip_1()->setVisible(true);
+        p_clip_analysis_board_->layouts()[2]->addWidget(p_delegate_->dst_clip_2());
+        p_delegate_->dst_clip_2()->setVisible(true);
+    } else {
+        p_clip_analysis_board_->layouts()[1]->addWidget(p_delegate_->dst_clip_1());
+        p_delegate_->dst_clip_1()->setVisible(true);
     }
 
     // Show ClipAnalysisBoard

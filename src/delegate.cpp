@@ -1,9 +1,17 @@
 #include "delegate.h"
 #include "utility.h"
+#include <QTime>
 
-Delegate::Delegate(QWidget *parent) : QWidget(parent)
+Delegate::Delegate(QWidget *parent)
+    : QWidget(parent)
+    , camera_started_(false)
+    , task_started_(false)
+    , alarm_started_(false)
+    , video_finished_(false)
+    , curr_count_1_(0)
+    , curr_count_2_(0)
 {
-
+    fps_ = 20;
 }
 
 Delegate::~Delegate()
@@ -18,12 +26,6 @@ void Delegate::Init(std::vector<std::map<string, string> > task_info, int channe
 //! [Init Parameters]
     task_info_ = task_info[0];
     curr_channel_ = channel;
-    camera_started_ = false;
-    task_started_ = false;
-    alarm_started_ = false;
-    video_finished_ = false;
-
-    fps_ = 20;
 
 //! Take care of Wrong Case
     if (task_info_["camera_status"] == kStatusOFF && task_info_["task_status"] == kStatusON) {
@@ -46,14 +48,17 @@ void Delegate::Init(std::vector<std::map<string, string> > task_info, int channe
     Utility::SetWdgSizePolicy(p_dst_clip_, QSizePolicy::Ignored, QSizePolicy::Ignored);
 #else
     p_src_clip_ = new UClipWidget(this);
-    p_dst_clip_ = new UClipWidget(this);
+    p_dst_clip_1_ = new UClipWidget(this);
+    p_dst_clip_2_ = new UClipWidget(this);
     Utility::SetLabelStyle(p_src_clip_);
-    Utility::SetLabelStyle(p_dst_clip_);
+    Utility::SetLabelStyle(p_dst_clip_1_);
+    Utility::SetLabelStyle(p_dst_clip_2_);
 #endif
     p_src_clip_->set_curr_name(task_info_["task_name"]);
     p_src_clip_->set_curr_type(task_info_["task_type"]);
     p_src_clip_->setVisible(false);
-    p_dst_clip_->setVisible(false);
+    p_dst_clip_1_->setVisible(false);
+    p_dst_clip_2_->setVisible(false);
 
 //! [Create plot for Counting Tasks]
     p_plot_ = new UPlotWidget(this);
@@ -113,9 +118,13 @@ UClipWidget *Delegate::src_clip()
     return p_src_clip_;
 }
 
-UClipWidget *Delegate::dst_clip() const
+UClipWidget *Delegate::dst_clip_1() const
 {
-    return p_dst_clip_;
+    return p_dst_clip_1_;
+}
+UClipWidget *Delegate::dst_clip_2() const
+{
+    return p_dst_clip_2_;
 }
 #endif
 
@@ -162,8 +171,6 @@ void Delegate::StopMD()
     CommandAssigner(QString::fromStdString(kDaemonMD), QString::fromStdString(kCommandStop));
 }
 
-
-
 void Delegate::PlayCamera()
 {
     /* ABOUT camera_started and task_started
@@ -174,51 +181,70 @@ void Delegate::PlayCamera()
      * Since We need to Start(AD/CD) before we can display frames in Front_End; */
     if (camera_started_) {
         //! [Get Src from Buffer]
-        if (!buffer_.fetch_src(curr_src_, timestamp_)) {
+        if (!buffer_.fetch_src(curr_timestamp_, curr_src_, false)) {
             if (!buffer_.is_camera_valid()) { /// Video is over
                 VideoIsFinished();
             }
+//            std::cout << "em" << std::endl;
             return;
         }
-        if (curr_src_.empty())
-            return;
-        cv::cvtColor(curr_src_, curr_src_, CV_BGR2RGB);
+
+        if (!curr_src_.empty())
+            cv::cvtColor(curr_src_, curr_src_, CV_BGR2RGB);
         cv::Mat img_src = curr_src_.clone();
 
         //! [Get Analyze Results from Buffer]
         if (task_started_) {
-            // If fetch dst success, then update dst_map, plot and alarm;
-            cv::Mat img_src_discard = cv::Mat::zeros(frame_height_, frame_width_, CV_8UC3);
-            unsigned int timestamp_discard;
-            if (buffer_.fetch_dst(img_src_discard, curr_dst_, curr_count_, timestamp_discard)) {
-                if (curr_dst_.empty())
-                    return;
-                cv::cvtColor(curr_dst_, curr_dst_, CV_BGR2RGB);
-                // counting task, Plot, view video as camera
-                if (task_info_["task_type"] == kTaskTypeCounting) {
-                    double key;
-                    if (task_info_["camera_type"] == kCameraTypeFile)
-                        key = QDateTime::currentDateTime().toMSecsSinceEpoch()/1000.0;
-                    else
-                        key = static_cast<double> (timestamp_);
-
-                    p_plot_->set_data(key, curr_count_);
-
-                    // Alarm
-                    p_clip_alarm_->set_value(curr_count_);
-                }
-                // dst map
-                p_dst_clip_->ShowImage(curr_dst_);
-            }
-            // Counting Task, Always Show ROI and Counting result, no matter fetch dst succuss or not
-            if (task_info_["task_type"] == kTaskTypeCounting) {
-                for (int i=0; i<roi_points_.size()-1; ++i)
+           if (task_info_["task_type"] == kTaskTypeCounting) {
+               // Counting (CrossLine) Task, Always Show ROI (LINE) and Counting result, no matter fetch dst succuss or not
+                for (int i=0; i<roi_points_.size()-1; ++i) {
                     cv::line(img_src, roi_points_[i], roi_points_[i+1], cv::Scalar( 0, 0, 255),  2, 8 );
+                }
                 cv::line(img_src, roi_points_.first(), roi_points_.last(), cv::Scalar( 0, 0, 255),  2, 8 );
-                cv::putText(img_src, std::to_string(curr_count_), cv::Point(20, 60), cv::FONT_HERSHEY_SCRIPT_SIMPLEX, 2, cv::Scalar(0, 0, 255), 2, 8);
-            }
-        }
+                cv::putText(img_src, std::to_string(curr_count_1_), cv::Point(20, 60), cv::FONT_HERSHEY_SCRIPT_SIMPLEX, 2, cv::Scalar(0, 0, 255), 2, 8);
 
+               if(!buffer_.fetch_dst(curr_timestamp_, curr_dst_1_, curr_count_1_, false)) {
+                   return;
+               }
+               if (!curr_dst_1_.empty()) {
+                   cv::cvtColor(curr_dst_1_, curr_dst_1_, CV_BGR2RGB);
+               }
+               // Plot, view video as camera
+               double key;
+               if (task_info_["camera_type"] == kCameraTypeFile) {
+                   key = QDateTime::currentDateTime().toMSecsSinceEpoch()/1000.0;
+               } else {
+                   key = static_cast<double> (curr_timestamp_);
+               }
+               p_plot_->set_data(key, curr_count_1_);
+               // Alarm
+               p_clip_alarm_->set_value(curr_count_1_);
+
+           } else if (task_info_["task_type"] == kTaskTypeCrossline) {
+               cv::line(img_src, roi_points_[0], roi_points_[1], cv::Scalar( 0, 0, 255),  2, 8 );
+               cv::putText(img_src, std::to_string(curr_count_1_), cv::Point(20, 60), cv::FONT_HERSHEY_SCRIPT_SIMPLEX, 2, cv::Scalar(0, 0, 255), 2, 8);
+               cv::putText(img_src, std::to_string(curr_count_2_), cv::Point(20, 60), cv::FONT_HERSHEY_SCRIPT_SIMPLEX, 2, cv::Scalar(0, 0, 255), 2, 8);
+               if(!buffer_.fetch_dst(curr_timestamp_,  curr_dst_1_, curr_dst_2_, curr_count_1_, curr_count_2_, false)) {
+                   return;
+               }
+               if (!curr_dst_1_.empty() && !curr_dst_2_.empty()) {
+                   cv::cvtColor(curr_dst_1_, curr_dst_1_, CV_BGR2RGB);
+                   cv::cvtColor(curr_dst_2_, curr_dst_2_, CV_BGR2RGB);
+               }
+               // dst clip 2
+               p_dst_clip_2_->ShowImage(curr_dst_2_);
+           } else {
+               if(!buffer_.fetch_dst(curr_timestamp_, curr_dst_1_, false)) {
+                   return;
+               }
+               if (!curr_dst_1_.empty()) {
+                   cv::cvtColor(curr_dst_1_, curr_dst_1_, CV_BGR2RGB);
+               }
+           }
+           // dst clip 1
+           p_dst_clip_1_->ShowImage(curr_dst_1_);
+        }
+        // src frame
         p_src_clip_->ShowImage(img_src);
     }
 }
@@ -232,7 +258,6 @@ void Delegate::CommandAssigner(QString daemon, QString operation)
             // CD alreay started, do nothing.
             return;
         }
-
         p_src_clip_->set_clip_controler(false, false, false, false, false);
     }
 
@@ -249,27 +274,23 @@ void Delegate::CommandAssigner(QString daemon, QString operation)
             QMessageBox::warning(0, "Warning", "Update DB Failed!", QMessageBox::Ok, QMessageBox::Ok);
             return;
         }
-
          // Release ShareMemory in CD Require Stop play camera in the Front_End
          timer_.stop();
          camera_started_ = false;
      }
 
-    /* Start AD,
-     * Need to Check (if task type is counting): -- ROI, PersMap, lm */
+    /* Start AD */
      if (daemon == QString::fromStdString(kDaemonAD) && operation == QString::fromStdString(kCommandStart)) {
          if (!camera_started_ || task_started_) {
              // CD stopped or AD already started do nothing.
              return;
          }
-
          p_src_clip_->set_clip_controler(false, false, false, false, false);
-         if (task_info_["task_type"] == kTaskTypeCounting) {
-             if (!IsReadyToStartAD()) {
-                 p_src_clip_->set_clip_controler(true, true, false, false, true);
-                 QMessageBox::information(NULL, "warning", "Please Setup Task!", QMessageBox::Ok, QMessageBox::Ok);
-                 return;
-             }
+
+         if (!IsReadyToStartAD()) {
+             p_src_clip_->set_clip_controler(true, true, false, false, true);
+             QMessageBox::information(NULL, "warning", "Please Setup Task!", QMessageBox::Ok, QMessageBox::Ok);
+             return;
          }
      }
 
@@ -438,14 +459,14 @@ void Delegate::OnCameraStarted()
 void Delegate::OnTaskStarted()
 {
     p_src_clip_->set_clip_controler(false, false, true, true, false);
-    if (task_info_["alarm_switch"] == kStatusON) {
+    if (task_info_["task_type"] == kTaskTypeCounting && task_info_["alarm_switch"] == kStatusON) {
         StartMD();
     }
 }
 
 void Delegate::OnTaskStoped()
 {
-    if (task_info_["alarm_switch"] == kStatusON) {
+    if (task_info_["task_type"] == kTaskTypeCounting && task_info_["alarm_switch"] == kStatusON) {
         StopMD();
     }
     if (video_finished_) {
@@ -470,7 +491,7 @@ void Delegate::OnShowClipAnalysisBoardClicked()
 void Delegate::OnCountingSettingClicked()
 {
 //! [p_countingsetting]
-    p_countingsetting_ = new CountingSetting(0);
+    p_countingsetting_ = new CountingSetting(task_info_["task_type"], 0);
 
     // resize counting setting window
     p_countingsetting_->setMinimumSize(kSketchpadWidth, kSketchpadHeight);
@@ -499,15 +520,21 @@ bool Delegate::InitBuffer()
     }
     buffer_.frame_size(frame_width_, frame_height_);
 
-    // Init curr_src_ and curr_dst_
+    // Init curr_src_, curr_dst_1_ and curr_dst_2_
     curr_src_ = cv::Mat::zeros(frame_height_, frame_width_, CV_8UC3);
-    curr_dst_ = cv::Mat::zeros(frame_height_, frame_width_, CV_8UC3);
+    curr_dst_1_ = cv::Mat::zeros(frame_height_, frame_width_, CV_8UC3);
+    curr_dst_2_ = cv::Mat::zeros(frame_height_, frame_width_, CV_8UC3);
 
     return true;
 }
 
 bool Delegate::IsReadyToStartAD()
 {
+
+    if (task_info_["task_type"] == kTaskTypeSegmentation || task_info_["task_type"] == kTaskTypeStationary) {
+        return true;
+    }
+
     std::vector<std::map<std::string, std::string> > res;
     if (!DBHelper::SelectFromTable("DensityDetail", "task_name", task_info_["task_name"], res)) {
         return false;
@@ -557,11 +584,11 @@ bool Delegate::VideoIsFinished()
 
     timer_.stop();
     // If stop cd here, make sure you back to clipboard first if you currently in clip_analysis_board.    //StopCD();
-//    cv::Mat img = curr_src_.clone();
     cv::Mat  img = cv::Mat::zeros(frame_height_, frame_width_, CV_8UC3);
     cv::putText(img, "Finished", cv::Point(frame_width_/2 - 100, frame_height_/2), cv::FONT_HERSHEY_SCRIPT_SIMPLEX, 2, cv::Scalar(255, 0, 0), 5, 16);
     p_src_clip_->ShowImage(img);
-    p_dst_clip_->ShowImage(img);
+    p_dst_clip_1_->ShowImage(img);
+    p_dst_clip_2_->ShowImage(img);
     p_plot_->clear_plot();
 
     return true;
@@ -620,10 +647,15 @@ void Delegate::WriteCountingSetting()
     if (!Utility::SavePoints(p_countingsetting_->pers_points(), pers_path)) {
         return;
     }
-    /*save gt data*/
-    if (!Utility::WriteDGData(gt_dir, p_countingsetting_->gt_points(), p_countingsetting_->gt_images())) {
+
+    if (task_info_["task_type"] == kTaskTypeCounting) {
+        /*save gt data*/
+        if (!Utility::WriteDGData(gt_dir, p_countingsetting_->gt_points(), p_countingsetting_->gt_images())) {
+            return;
+        }
         return;
     }
+
     /* Delete from DB before Insert*/
     if (!DBHelper::DeleteFromTable("DensityDetail", "task_name", task_info_["task_name"])) {
         return;
@@ -634,14 +666,17 @@ void Delegate::WriteCountingSetting()
         return;
     }
 
-    /* Open RD Daemon For Train LM */
-    StartRD();
+    if (task_info_["task_type"] == kTaskTypeCounting) {
+        /* Open RD Daemon For Train LM */
+        StartRD();
+    }
 }
 
 void Delegate::release_memory()
 {
     delete p_src_clip_;
-    delete p_dst_clip_;
+    delete p_dst_clip_1_;
+    delete p_dst_clip_2_;
     delete p_plot_;
     delete p_clip_alarm_;
 }

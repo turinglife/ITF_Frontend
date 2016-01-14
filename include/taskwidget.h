@@ -57,7 +57,6 @@ private:
     std::string camera_status_;
     std::string task_path_;
     std::string alarm_switch_;
-    std::string report_switch_;
     std::string group_name_;
 
     // Table of Task_Camera

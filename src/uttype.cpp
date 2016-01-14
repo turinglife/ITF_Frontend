@@ -12,6 +12,7 @@ UTType::UTType(QWidget *parent) : UTBaseWidget(parent)
     p_tasktype_->addItem(tr("COUNTING"));
     p_tasktype_->addItem(tr("SEGMENTATION"));
     p_tasktype_->addItem(tr("STATIONARY"));
+    p_tasktype_->addItem(tr("CROSSLINE"));
     p_tasktype_->setCurrentIndex(0);
 
     p_lay_main->addWidget(p_lab_1, 0, 0);

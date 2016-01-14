@@ -60,7 +60,7 @@ public:
      * @param group_name
      * @return
      */
-    static bool InsertToTasks (const string &task_name, const string &task_type, const string &task_status, const string &camera_type, const string &camera_status,const string &task_path, const string &alarm_switch, const string &report_switch, const string &group_name) {
+    static bool InsertToTasks (const string &task_name, const string &task_type, const string &task_status, const string &camera_type, const string &camera_status,const string &task_path, const string &alarm_switch, const string &group_name) {
         // Connect DB
         CDbi db;
         if (! IsDBConnected(db))
@@ -74,7 +74,6 @@ public:
                              + camera_status + "', '"
                              + task_path + "', '"
                              + alarm_switch + "', '"
-                             + report_switch + "', '"
                              + group_name + "');");
         return ok;
     }
