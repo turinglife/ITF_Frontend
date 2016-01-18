@@ -58,7 +58,8 @@ void UTCamera::OnBtnOpenClicked()
         p_camera_->setText(filename);
     } else {
         // [CameraModule]
-        CameraModule *p_camera_module = new CameraModule(true, false, false, 0);
+        CameraModule *p_camera_module = new CameraModule(0);
+        p_camera_module->set_flag(true, false, false, false);
         p_camera_module->setMinimumSize(kMinAppWidth, kMinAppHeight);
         Utility::MoveToCenter(p_camera_module);
         p_camera_module->show();

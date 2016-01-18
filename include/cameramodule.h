@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include "common.h"
+#include <QPushButton>
 
 class QTableView;
 class QLineEdit;
@@ -13,8 +14,10 @@ class CameraModule : public QWidget
 {
     Q_OBJECT
 public:
-    explicit CameraModule(bool btn_select, bool btn_add, bool btn_delete, QWidget *parent = 0);
+    explicit CameraModule(QWidget *parent = 0);
     ~CameraModule();
+
+    void set_flag(bool f_select, bool f_add, bool f_delete, bool f_lineedit);
 
 signals:
     void CameraSelected(QString);
@@ -40,6 +43,10 @@ private:
     QLineEdit *p_port_;
     QLineEdit *p_username_;
     QLineEdit *p_password_;
+
+    QPushButton *p_select_;
+    QPushButton *p_add_;
+    QPushButton *p_delete_;
 };
 
 #endif // CAMERAMODULE_H
