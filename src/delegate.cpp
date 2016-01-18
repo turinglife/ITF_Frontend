@@ -196,7 +196,7 @@ void Delegate::PlayCamera()
         //! [Get Analyze Results from Buffer]
         if (task_started_) {
            if (task_info_["task_type"] == kTaskTypeCounting) {
-               // Counting (CrossLine) Task, Always Show ROI (LINE) and Counting result, no matter fetch dst succuss or not
+               // Counting Task, Always Show ROI and Counting result, no matter fetch dst succuss or not
                 for (int i=0; i<roi_points_.size()-1; ++i) {
                     cv::line(img_src, roi_points_[i], roi_points_[i+1], cv::Scalar( 0, 0, 255),  2, 8 );
                 }
@@ -223,7 +223,7 @@ void Delegate::PlayCamera()
            } else if (task_info_["task_type"] == kTaskTypeCrossline) {
                cv::line(img_src, roi_points_[0], roi_points_[1], cv::Scalar( 0, 0, 255),  2, 8 );
                cv::putText(img_src, std::to_string(curr_count_1_), cv::Point(20, 60), cv::FONT_HERSHEY_SCRIPT_SIMPLEX, 2, cv::Scalar(0, 0, 255), 2, 8);
-               cv::putText(img_src, std::to_string(curr_count_2_), cv::Point(20, 60), cv::FONT_HERSHEY_SCRIPT_SIMPLEX, 2, cv::Scalar(0, 0, 255), 2, 8);
+               cv::putText(img_src, std::to_string(curr_count_2_), cv::Point(360, 60), cv::FONT_HERSHEY_SCRIPT_SIMPLEX, 2, cv::Scalar(255, 0, 0), 2, 8);
                if(!buffer_.fetch_dst(curr_timestamp_,  curr_dst_1_, curr_dst_2_, curr_count_1_, curr_count_2_, false)) {
                    return;
                }
@@ -653,7 +653,6 @@ void Delegate::WriteCountingSetting()
         if (!Utility::WriteDGData(gt_dir, p_countingsetting_->gt_points(), p_countingsetting_->gt_images())) {
             return;
         }
-        return;
     }
 
     /* Delete from DB before Insert*/

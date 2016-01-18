@@ -47,7 +47,7 @@
 
 using namespace std;
 
-const string kAppDir = "Intelligent Video Analysis/";
+const string kAppDir = "ITF_SmartClient/";
 const string kTaskDir = "Task/";
 const string kPersDir = "PMap/";
 const string kROIDir = "ROI/";
@@ -59,7 +59,7 @@ const string kPersFile = "pers.csv";
 const string kROIFile = "roi.csv";
 const string kLMFile = "lm.csv";
 
-const string kHome = string(getenv("HOME")) + "/Desktop";
+const string kHome = string(getenv("HOME"));
 const string kAppRootPath = kHome + "/" + kAppDir;
 const string kTaskRootPath = kAppRootPath + kTaskDir;
 
@@ -73,7 +73,7 @@ const string pass = "itf";
 const string db_name = "ITF";
 
 /* Daemon */
-const string kDaemonPath = kHome + "/github/ITF_Backend/build/daemon/";
+const string kDaemonPath = "/usr/local/itf/daemon/";
 const string kDaemonAD = "AD";
 const string kDaemonCD = "CD";
 const string kDaemonRD = "RD";

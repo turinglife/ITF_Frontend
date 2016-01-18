@@ -12,7 +12,7 @@
 #include "dbhelper.h"
 #include "utility.h"
 
-CameraModule::CameraModule(bool btn_select, bool btn_add, bool btn_delete, QWidget *parent) : QWidget(parent)
+CameraModule::CameraModule(QWidget *parent) : QWidget(parent)
 {
     // Setup UI
     setWindowTitle("Camera Center");
@@ -98,21 +98,17 @@ CameraModule::CameraModule(bool btn_select, bool btn_add, bool btn_delete, QWidg
     p_password_->setSizePolicy(sizePolicy2);
     p_lay_gbox_right->addWidget(p_password_);
 
-    QPushButton *p_btn_select = new QPushButton(tr("Select Camera"), p_gbox_right);
-    p_btn_select->setCursor(QCursor(Qt::PointingHandCursor));
-    p_lay_gbox_right->addWidget(p_btn_select);
+    p_select_ = new QPushButton(tr("Done"), p_gbox_right);
+    p_select_->setCursor(QCursor(Qt::PointingHandCursor));
+    p_lay_gbox_right->addWidget(p_select_);
 
-    QPushButton *p_btn_add = new QPushButton(tr("Add Camera"), p_gbox_right);
-    p_btn_add->setCursor(QCursor(Qt::PointingHandCursor));
-    p_lay_gbox_right->addWidget(p_btn_add);
+    p_add_ = new QPushButton(tr("Add Camera"), p_gbox_right);
+    p_add_->setCursor(QCursor(Qt::PointingHandCursor));
+    p_lay_gbox_right->addWidget(p_add_);
 
-    QPushButton *p_btn_delete = new QPushButton(tr("Delete Camera"), p_gbox_right);
-    p_btn_delete->setCursor(QCursor(Qt::PointingHandCursor));
-    p_lay_gbox_right->addWidget(p_btn_delete);
-
-    p_btn_select->setEnabled(btn_select);
-    p_btn_add->setEnabled(btn_add);
-    p_btn_delete->setEnabled(btn_delete);
+    p_delete_ = new QPushButton(tr("Delete Camera"), p_gbox_right);
+    p_delete_->setCursor(QCursor(Qt::PointingHandCursor));
+    p_lay_gbox_right->addWidget(p_delete_);
 
     QSpacerItem *p_verticalSpacer = new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding);
     p_lay_gbox_right->addItem(p_verticalSpacer);
@@ -125,9 +121,9 @@ CameraModule::CameraModule(bool btn_select, bool btn_add, bool btn_delete, QWidg
 
     // Setup Connection
     connect(p_tableview_, SIGNAL(clicked(QModelIndex)), this, SLOT(OnTableViewPressed(QModelIndex)));
-    connect(p_btn_select, SIGNAL(clicked()), this, SLOT(OnBtnSelectClicked()));
-    connect(p_btn_add, SIGNAL(clicked()), this, SLOT(OnBtnAddClicked()));
-    connect(p_btn_delete, SIGNAL(clicked()), this, SLOT(OnBtnDeleteClicked()));
+    connect(p_select_, SIGNAL(clicked()), this, SLOT(OnBtnSelectClicked()));
+    connect(p_add_, SIGNAL(clicked()), this, SLOT(OnBtnAddClicked()));
+    connect(p_delete_, SIGNAL(clicked()), this, SLOT(OnBtnDeleteClicked()));
 
     // Setup model
     p_camera_model_ = new TableModel(this);
@@ -139,6 +135,19 @@ CameraModule::CameraModule(bool btn_select, bool btn_add, bool btn_delete, QWidg
 CameraModule::~CameraModule()
 {
 
+}
+
+void CameraModule::set_flag(bool f_select, bool f_add, bool f_delete, bool f_lineedit)
+{
+    p_select_->setVisible(f_select);
+    p_add_->setVisible(f_add);
+    p_delete_->setVisible(f_delete);
+    p_cameraname_->setEnabled(f_lineedit);
+    p_address_->setEnabled(f_lineedit);
+    p_host_->setEnabled(f_lineedit);
+    p_port_->setEnabled(f_lineedit);
+    p_username_->setEnabled(f_lineedit);
+    p_password_->setEnabled(f_lineedit);
 }
 
 void CameraModule::OnBtnSelectClicked()

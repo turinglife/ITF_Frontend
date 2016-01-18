@@ -40,7 +40,8 @@ IntelligentVideoAnalysis::IntelligentVideoAnalysis(QWidget *parent)
     p_stackedwidget_->addWidget(p_alarm_module_);
 
 //! [Camera Moduel]
-    p_camera_module_ = new CameraModule(false, true, true, this);
+    p_camera_module_ = new CameraModule(this);
+    p_camera_module_->set_flag(false, true, true, true);
     p_stackedwidget_->addWidget(p_camera_module_);
 
 //! [Action]

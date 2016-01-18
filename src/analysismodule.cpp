@@ -247,6 +247,8 @@ void AnalysisModule::ShowClipAnalysisBoard(int channel)
         p_clip_analysis_board_->layouts()[2]->addWidget(p_delegate_->plot());
         p_delegate_->plot()->setVisible(true);
     } else if (p_delegate_->task_info()["task_type"] == kTaskTypeCrossline) {
+//        p_clip_analysis_board_->layouts()[1]->addWidget(p_delegate_->dst_clip_1());
+//        p_delegate_->dst_clip_1()->setVisible(true);
         p_clip_analysis_board_->layouts()[2]->addWidget(p_delegate_->dst_clip_1());
         p_delegate_->dst_clip_1()->setVisible(true);
         p_clip_analysis_board_->layouts()[2]->addWidget(p_delegate_->dst_clip_2());
