@@ -31,21 +31,21 @@ void UPlotWidget::set_plot(double x_axis_min, double x_axis_max, string camera_t
     plot_->graph(0)->setScatterStyle(QCPScatterStyle::ssNone);
 
     plot_->addGraph();
-    plot_->graph(1)->setName("Counting");
-    plot_->graph(1)->setPen(QPen(QColor(255, 100, 0)));
+    plot_->graph(1)->setName("Tatol");
+    plot_->graph(1)->setPen(QPen(QColor(0, 100, 255)));
     plot_->graph(1)->setLineStyle(QCPGraph::lsLine);
     plot_->graph(1)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssDisc, 8));
 
     if (curr_task_type_ == kTaskTypeCrossline) {
         plot_->addGraph();
-        plot_->graph(2)->setName("Counting");
+        plot_->graph(2)->setName("Counting1");
         plot_->graph(2)->setPen(QPen(QColor(0, 255, 100)));
         plot_->graph(2)->setLineStyle(QCPGraph::lsLine);
         plot_->graph(2)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssDiamond, 6));
 
         plot_->addGraph();
-        plot_->graph(3)->setName("Counting");
-        plot_->graph(3)->setPen(QPen(QColor(100, 0, 255)));
+        plot_->graph(3)->setName("Counting2");
+        plot_->graph(3)->setPen(QPen(QColor(255, 100, 0)));
         plot_->graph(3)->setLineStyle(QCPGraph::lsLine);
         plot_->graph(3)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssStar, 6));
     }
