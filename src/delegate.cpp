@@ -1,6 +1,7 @@
 #include "delegate.h"
 #include "utility.h"
 #include <QTime>
+#include <math.h>
 
 Delegate::Delegate(QWidget *parent)
     : QWidget(parent)
@@ -16,6 +17,7 @@ Delegate::~Delegate()
 {
     std::cout << "release Delegate begin" << std::endl;
     release_memory();
+    std::cout << "release Delegate Done" << std::endl;
 }
 
 void Delegate::Init(std::vector<std::map<string, string> > task_info, int channel)
@@ -160,7 +162,7 @@ void Delegate::StopMD()
 
 void Delegate::PlaySrc()
 {
-//    std::cout << "Begin PlaySrc" << std::endl;
+    std::cout << "Begin PlaySrc" << std::endl;
     if (!buffer_.fetch_src(curr_timestamp_, curr_src_, false)) {
         if (!buffer_.is_camera_valid()) {
             /// Video is over
@@ -173,24 +175,28 @@ void Delegate::PlaySrc()
     if (timer_dst_.isActive()) {
         if (task_info_["task_type"] == kTaskTypeCounting) {
             for (int i=0; i<roi_points_.size()-1; ++i) {
-                cv::line(img_src, roi_points_[i], roi_points_[i+1], cv::Scalar( 0, 0, 255),  2, 8 );
+                cv::line(img_src, roi_points_[i], roi_points_[i+1], cv::Scalar(100, 0, 255),  3, 8 );
             }
-            cv::line(img_src, roi_points_.first(), roi_points_.last(), cv::Scalar( 0, 0, 255),  2, 8 );
-            cv::putText(img_src, std::to_string(curr_count_1_), cv::Point(20, 60), cv::FONT_HERSHEY_SCRIPT_SIMPLEX, 2, cv::Scalar(0, 0, 255), 2, 8);
+            cv::line(img_src, roi_points_.first(), roi_points_.last(), cv::Scalar(100, 0, 255),  3, 8 );
+            cv::putText(img_src, std::to_string(curr_count_1_), cv::Point(50, 60), cv::FONT_HERSHEY_SCRIPT_SIMPLEX, 2, cv::Scalar(0, 100, 255), 3, 8);
         } else if (task_info_["task_type"] == kTaskTypeCrossline){
-            cv::line(img_src, roi_points_[0], roi_points_[1], cv::Scalar( 0, 0, 255),  2, 8 );
-            cv::putText(img_src, std::to_string(curr_count_1_), cv::Point(frame_width_-200, frame_height_-60), cv::FONT_HERSHEY_SCRIPT_SIMPLEX, 2, cv::Scalar(0, 255, 0), 2, 8);
-            cv::putText(img_src, std::to_string(curr_count_2_), cv::Point(50, 60), cv::FONT_HERSHEY_SCRIPT_SIMPLEX, 2, cv::Scalar(0, 0, 255), 2, 8);
+            cv::line(img_src, roi_points_[0], roi_points_[1], cv::Scalar(100, 0, 255),  3, 8 );
+
+            ArrowedLine(img_src, arrow_points_[0], arrow_points_[1], cv::Scalar(100, 255, 0),  3, 8);
+            cv::putText(img_src, std::to_string(curr_count_1_), cv::Point(arrow_points_[1].x + 50, arrow_points_[0].y + 50), cv::FONT_HERSHEY_SCRIPT_SIMPLEX, 2, cv::Scalar(100, 255, 0), 3, 8);
+
+            ArrowedLine(img_src, arrow_points_[3], arrow_points_[2], cv::Scalar(0, 100, 255),  3, 8);
+            cv::putText(img_src, std::to_string(curr_count_2_), cv::Point(arrow_points_[3].x + 50, arrow_points_[2].y + 50), cv::FONT_HERSHEY_SCRIPT_SIMPLEX, 2, cv::Scalar(0, 100, 255), 3, 8);
         }
     }
 
     p_src_clip_->ShowImage(img_src);
-//    std::cout << "End PlaySrc" << std::endl;
+    std::cout << "End PlaySrc" << std::endl;
 }
 
 void Delegate::PlayDst()
 {
-//    std::cout << "Begin PlayDst" << std::endl;
+    std::cout << "Begin PlayDst" << std::endl;
     if (task_info_["task_type"] == kTaskTypeCounting) {
         if(!buffer_.fetch_dst(curr_timestamp_, curr_dst_1_, curr_count_1_, false)) {
             return;
@@ -228,6 +234,8 @@ void Delegate::PlayDst()
         /* dst clip */
         p_dst_clip_1_->ShowImage(curr_dst_slice_1_);
         p_dst_clip_2_->ShowImage(curr_dst_slice_2_);
+//        p_dst_clip_1_->ShowImage(curr_dst_1_);
+//        p_dst_clip_2_->ShowImage(curr_dst_2_);
 
     } else {
         if(!buffer_.fetch_dst(curr_timestamp_, curr_dst_1_, false)) {
@@ -236,7 +244,7 @@ void Delegate::PlayDst()
         /* dst clip 1 */
         p_dst_clip_1_->ShowImage(curr_dst_1_);
     }
-//    std::cout << "End PlayDst" << std::endl;
+    std::cout << "End PlayDst" << std::endl;
 }
 
 void Delegate::CommandAssigner(QString daemon, QString operation)
@@ -264,6 +272,7 @@ void Delegate::CommandAssigner(QString daemon, QString operation)
          if (!IsReadyToStartAD()) {
              QMessageBox::information(NULL, "warning", "Please Setup Task!", QMessageBox::Ok, QMessageBox::Ok);
              p_src_clip_->set_clip_controler(true, true, false, false, true);
+             return;
          }
      }
 
@@ -413,7 +422,7 @@ void Delegate::OnCameraStarted()
 
 void Delegate::OnTaskStarted()
 {
-    timer_dst_.start(1000/100);
+    timer_dst_.start(1000/fps_);
 
     if (task_info_["task_type"] == kTaskTypeCounting && task_info_["alarm_switch"] == kStatusON) {
         StartMD();
@@ -554,6 +563,19 @@ bool Delegate::IsReadyToStartAD()
         // init slice mat
         curr_dst_slice_1_ = cv::Mat::zeros(slice_height_, slice_width_, CV_8UC3);
         curr_dst_slice_2_ = cv::Mat::zeros(slice_height_, slice_width_, CV_8UC3);
+
+        // Init arrow position
+        cv::Point pt1, pt2, pt3, pt4;
+        int arrow_length = 80;
+        pt1 = cv::Point(50, 10);
+        OrthogonalLine(roi_points_[0], roi_points_[1], pt1, pt2, arrow_length);
+        pt3 = cv::Point(pt1.x, pt1.y + arrow_length + 20);
+        pt4 = cv::Point(pt2.x, pt2.y + arrow_length + 20);
+        arrow_points_.clear();
+        arrow_points_.push_back(pt1);
+        arrow_points_.push_back(pt2);
+        arrow_points_.push_back(pt3);
+        arrow_points_.push_back(pt4);
     }
 
     return true;
@@ -565,13 +587,14 @@ bool Delegate::VideoIsFinished()
     video_finished_ = true;
     // When Video is Finished, stop AD, CD
     if (timer_dst_.isActive()) {
+        timer_dst_.stop();
         StopAD();
     }
     p_src_clip_->set_clip_controler(true, false, false, false, false);
 
     int index=0;
     while (++index < 5) {
-        if (timer_dst_.isActive() || alarm_started_) {
+        if (alarm_started_) {
             sleep(1);
         } else {
             break;
@@ -581,7 +604,7 @@ bool Delegate::VideoIsFinished()
     OnRemoveFromBoardClicked();
 
     cv::Mat  img = cv::Mat::zeros(frame_height_, frame_width_, CV_8UC3);
-    cv::putText(img, "Finished", cv::Point(frame_width_/2 - 100, frame_height_/2), cv::FONT_HERSHEY_SCRIPT_SIMPLEX, 2, cv::Scalar(255, 0, 0), 5, 16);
+    cv::putText(img, "Finished", cv::Point(frame_width_/2 - 100, frame_height_/2), cv::FONT_HERSHEY_SCRIPT_SIMPLEX, 2, cv::Scalar(0, 100, 255), 5, 16);
     p_src_clip_->ShowImage(img);
     p_dst_clip_1_->ShowImage(img);
     p_dst_clip_2_->ShowImage(img);
@@ -706,6 +729,38 @@ void Delegate::ExtractLine(const cv::Mat &src, cv::Point pt1, cv::Point pt2, vec
     for(int i = 0; i < it.count; i++, ++it) {
         line.push_back((cv::Vec3b)*it);
     }
+}
+
+void Delegate::OrthogonalLine(const cv::Point &src_pt1, const cv::Point &src_pt2, const cv::Point &dst_pt1, cv::Point &dst_pt2, int dst_line_length)
+{
+    float angle, dx, dy;
+    if (src_pt1.x == src_pt2.x) {
+        dx = dst_pt1.x + dst_line_length;
+        dy = dst_pt1.y;
+    } else {
+        angle = atan(-1 / (float(src_pt2.y - src_pt1.y) / float(src_pt2.x - src_pt1.x)));
+        dx = dst_pt1.x + abs(dst_line_length*cos(angle));
+        dy = dst_pt1.y + abs(dst_line_length*sin(angle));
+    }
+
+    dst_pt2 = cv::Point(dx, dy);
+}
+
+void Delegate::ArrowedLine(cv::Mat &img, cv::Point pt1, cv::Point pt2, const cv::Scalar &color, int thickness, int line_type, int shift, double tipLength)
+{
+    const double tipSize = norm(pt1-pt2)*tipLength; // Factor to normalize the size of the tip depending on the length of the arrow
+
+    cv::line(img, pt1, pt2, color, thickness, line_type, shift);
+
+    const double angle = atan2( (double) pt1.y - pt2.y, (double) pt1.x - pt2.x );
+
+    cv::Point p(cvRound(pt2.x + tipSize * cos(angle + CV_PI / 4)),
+        cvRound(pt2.y + tipSize * sin(angle + CV_PI / 4)));
+    cv::line(img, p, pt2, color, thickness, line_type, shift);
+
+    p.x = cvRound(pt2.x + tipSize * cos(angle - CV_PI / 4));
+    p.y = cvRound(pt2.y + tipSize * sin(angle - CV_PI / 4));
+    cv::line(img, p, pt2, color, thickness, line_type, shift);
 }
 
 void Delegate::release_memory()
