@@ -28,8 +28,9 @@ public:
 signals:
     void ImageSizeChanged(int out_w, int out_h); /// Used to resize the image outside the widget
 
-    void Command(QString, QString);
-    void RemoveTaskFromBoard();
+    void StartAD();
+    void StopAD();
+    void RemoveFromBoard();
     void Setting();
     void ShowClipAnalysisBoard();
 

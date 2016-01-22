@@ -23,13 +23,13 @@ UClipWidget::UClipWidget(QWidget *parent) : QLabel(parent)
     p_clip_controler_ = new UClipControler(this);
 
     connect(p_clip_controler_->p_start_analyze_, &QPushButton::clicked, [=](){
-        emit Command(QString::fromStdString(kDaemonAD), QString::fromStdString(kCommandStart));
+        emit StartAD();
     });
     connect(p_clip_controler_->p_stop_analyze_, &QPushButton::clicked, [=](){
-        emit Command(QString::fromStdString(kDaemonAD), QString::fromStdString(kCommandStop));
+        emit StopAD();
     });
     connect(p_clip_controler_->p_clear_, &QPushButton::clicked, [=](){
-        emit RemoveTaskFromBoard();
+        emit RemoveFromBoard();
     });
     connect(p_clip_controler_->p_show_analysis_, &QPushButton::clicked, [=](){
         emit ShowClipAnalysisBoard();
@@ -70,7 +70,7 @@ bool UClipWidget::ShowImage(cv::Mat image)
         render_image_ = QImage((const unsigned char *)(orig_image_.data),
                                orig_image_.cols, orig_image_.rows,
                                orig_image_.step,
-                               QImage::Format_RGB888)/*.rgbSwapped()*/;
+                               QImage::Format_RGB888).rgbSwapped();
     else if (orig_image_.channels() == 1)
         render_image_ = QImage((const unsigned char *)(orig_image_.data),
                                orig_image_.cols, orig_image_.rows,
