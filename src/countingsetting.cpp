@@ -390,12 +390,13 @@ void CountingSetting::OnBtnBackClicked()
 {
     if (p_stackedwidget_main_->currentIndex() == 1) {
         p_stackedwidget_main_->setCurrentIndex(0);
-        if (p_sketchpad_pers_->points().empty()) {
+        if (task_type_ == kTaskTypeCrossline) {
             this->setWindowTitle(tr("Line of Interest"));
             p_next_->setText(tr("Next>>"));
         } else {
             this->setWindowTitle(tr("Region of Interest"));
         }
+
         set_btn_visible(true, false, false, false, false, true, false, false, false);
     } else if (p_stackedwidget_main_->currentIndex() == 2) {
         p_stackedwidget_main_->setCurrentIndex(1);
@@ -403,6 +404,7 @@ void CountingSetting::OnBtnBackClicked()
         p_next_->setText(tr("Next>>"));
         p_draw_->setText(tr("Draw"));
         set_btn_visible(true, true, false, false, true, true, false, false, false);
+        UpdateBtnStatus(true);
     } else {
         return;
     }

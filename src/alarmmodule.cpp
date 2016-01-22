@@ -223,11 +223,11 @@ bool AlarmModule::ShowImage(string task_name, QString img_name)
     cv::Mat img_src = cv::imread(src_path.toStdString());
     cv::Mat img_dst = cv::imread(dst_path.toStdString());
 
-    if (!img_src.empty())
-        cv::cvtColor(img_src, img_src, CV_BGR2RGB);
+//    if (!img_src.empty())
+//        cv::cvtColor(img_src, img_src, CV_BGR2RGB);
 
-    if (!img_dst.empty())
-        cv::cvtColor(img_dst, img_dst, CV_BGR2RGB);
+//    if (!img_dst.empty())
+//        cv::cvtColor(img_dst, img_dst, CV_BGR2RGB);
 
     p_frame_src_->ShowImage(img_src);
     p_frame_dst_->ShowImage(img_dst);
@@ -245,7 +245,7 @@ void AlarmModule::HistoricalPlot(string task_name, string str)
 //    std::cout << datetime_max << std::endl;
 
     /* view video as camera */
-    p_plot_->set_plot(DateTimeStringToDouble(datetime_min), DateTimeStringToDouble(datetime_max), kCameraTypeHttp);
+    p_plot_->set_plot(DateTimeStringToDouble(datetime_min), DateTimeStringToDouble(datetime_max), kCameraTypeHttp, kTaskTypeCounting);
 
     std::vector<std::map<std::string, std::string> > res;
     if (!DBHelper::SelectFromTable("DensityPredict", "task_name", task_name, datetime_min, datetime_max, res))

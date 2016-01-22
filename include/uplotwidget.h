@@ -12,14 +12,15 @@ public:
     explicit UPlotWidget(QWidget *parent = 0);
     ~UPlotWidget();
 
-    void set_plot(double x_axis_min, double x_axis_max, std::string type);
-    void set_data(double key, double value);
+    void set_plot(double x_axis_min, double x_axis_max, std::string camera_type, std::string task_type);
+    void set_data(double key, double val1, double val2=0, double val3=0);
     void clear_plot();
 
 protected:
     QCustomPlot *plot_;
 
-    std::string curr_type_;
+    std::string curr_camera_type_;
+    std::string curr_task_type_;
 
     double x_axis_max_;
     double x_axis_min_;

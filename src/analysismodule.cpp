@@ -251,8 +251,10 @@ void AnalysisModule::ShowClipAnalysisBoard(int channel)
 //        p_delegate_->dst_clip_1()->setVisible(true);
         p_clip_analysis_board_->layouts()[2]->addWidget(p_delegate_->dst_clip_1());
         p_delegate_->dst_clip_1()->setVisible(true);
-        p_clip_analysis_board_->layouts()[2]->addWidget(p_delegate_->dst_clip_2());
+        p_clip_analysis_board_->layouts()[1]->addWidget(p_delegate_->dst_clip_2());
         p_delegate_->dst_clip_2()->setVisible(true);
+        p_clip_analysis_board_->layouts()[2]->addWidget(p_delegate_->plot());
+        p_delegate_->plot()->setVisible(true);
     } else {
         p_clip_analysis_board_->layouts()[1]->addWidget(p_delegate_->dst_clip_1());
         p_delegate_->dst_clip_1()->setVisible(true);

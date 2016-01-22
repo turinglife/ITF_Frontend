@@ -64,7 +64,7 @@ bool USketchPadWidget::ShowImage(cv::Mat image)
         render_image_ = QImage((const unsigned char *)(orig_image_.data),
                                orig_image_.cols, orig_image_.rows,
                                orig_image_.step,
-                               QImage::Format_RGB888)/*.rgbSwapped()*/;
+                               QImage::Format_RGB888).rgbSwapped();
     else if (orig_image_.channels() == 1)
         render_image_ = QImage((const unsigned char *)(orig_image_.data),
                                orig_image_.cols, orig_image_.rows,
