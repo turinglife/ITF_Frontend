@@ -148,8 +148,10 @@ void UPlotWidget::clear_graph_data()
 {
     plot_->graph(0)->clearData();
     plot_->graph(1)->clearData();
-    plot_->graph(2)->clearData();
-    plot_->graph(3)->clearData();
+    if (curr_task_type_ == kTaskTypeCrossline) {
+        plot_->graph(2)->clearData();
+        plot_->graph(3)->clearData();
+    }
 
     plot_->replot();
 }
