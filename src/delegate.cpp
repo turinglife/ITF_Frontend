@@ -10,7 +10,7 @@ Delegate::Delegate(QWidget *parent)
     , curr_count_1_(0)
     , curr_count_2_(0)
 {
-    fps_ = 20;
+    fps_ = 50;
 }
 
 Delegate::~Delegate()
@@ -603,7 +603,7 @@ bool Delegate::IsReadyToStartAD()
     }
 
     if (task_info_["task_type"] == kTaskTypeCrossline) {
-        vector<cv::Vec3b> line;
+        QVector<cv::Vec3b> line;
         ExtractLine(curr_src_.clone(), roi_points_[0], roi_points_[1], line);
         slice_height_ = line.size() - 1;
         slice_width_ = slice_height_*frame_ratio_;
@@ -757,14 +757,19 @@ void Delegate::ConvertToSlice(const cv::Mat &src, cv::Mat &dst, cv::Point pt1, c
     /*Extract all the pixels on the raster line segment connecting two specified points. */
     std::cout <<"Begin ConverToSlice" << std::endl;
     std::cout << "line" << std::endl;
-    vector<cv::Vec3b> line;
-    ExtractLine(src, pt1, pt2, line);
+//    QVector<cv::Vec3b> line;
+    cross_line_.clear();
+    ExtractLine(src, pt1, pt2, cross_line_);
     cv::Mat img = dst.clone();
     std::cout << "img copyto" << std::endl;
     img(cv::Rect(1, 0, img.cols-1, img.rows)).copyTo(dst(cv::Rect(0, 0, dst.cols-1, dst.rows)));
     std::cout << "val copy" << std::endl;
-    for(int i=0; i<line.size(); ++i) {
-        cv::Vec3b val = line[i];
+    if (dst.rows == cross_line_.size()) {
+        std::cout << "size diff" << std::endl;
+        exit(-1);
+    }
+    for(size_t i=0; i<cross_line_.size(); ++i) {
+        cv::Vec3b val = cross_line_[i];
         dst.at<cv::Vec3b>(i, dst.cols-1)[0] = val[0];
         dst.at<cv::Vec3b>(i, dst.cols-1)[1] = val[1];
         dst.at<cv::Vec3b>(i, dst.cols-1)[2] = val[2];
@@ -772,7 +777,7 @@ void Delegate::ConvertToSlice(const cv::Mat &src, cv::Mat &dst, cv::Point pt1, c
     std::cout <<"ENd ConverToSlice" << std::endl;
 }
 
-void Delegate::ExtractLine(const cv::Mat &src, cv::Point pt1, cv::Point pt2, vector<cv::Vec3b> &line)
+void Delegate::ExtractLine(const cv::Mat &src, cv::Point pt1, cv::Point pt2, QVector<cv::Vec3b> &line)
 {
     // grabs pixels along the line (pt1, pt2)
     // from 8-bit 3-channel image to the buffer
