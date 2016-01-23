@@ -71,7 +71,7 @@ private:
     bool VideoIsFinished();
     bool ReadCountingSetting();
     void WriteCountingSetting();
-//    void ConnectStatus(bool flag);
+    void ConnectStatus(bool flag);
 
     void ConvertToSlice(const cv::Mat &src, cv::Mat &dst, cv::Point pt1, cv::Point pt2);
     void ExtractLine(const cv::Mat &src, cv::Point pt1, cv::Point pt2, vector<cv::Vec3b> &line);
