@@ -84,6 +84,7 @@ void UPlotWidget::set_plot(double x_axis_min, double x_axis_max, string camera_t
     plot_->legend->removeAt(0);
     plot_->legend->setFont(QFont("Helvetica", 6));
     plot_->legend->setRowSpacing(-3);
+    plot_->axisRect()->insetLayout()->setInsetAlignment(0, Qt::AlignLeft|Qt::AlignTop); // make legend align in top left corner or axis rect
 
     plot_->replot();
 }
@@ -141,4 +142,12 @@ void UPlotWidget::clear_plot()
     plot_->disconnect();
 
     plot_->replot();
+}
+
+void UPlotWidget::clear_graph_data()
+{
+    plot_->graph(0)->clearData();
+    plot_->graph(1)->clearData();
+    plot_->graph(2)->clearData();
+    plot_->graph(3)->clearData();
 }

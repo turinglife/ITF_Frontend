@@ -626,6 +626,9 @@ bool Delegate::IsReadyToStartAD()
         arrow_points_.push_back(pt4);
     }
 
+    // clear plot graph data
+    p_plot_->clear_graph_data();
+
     return true;
 }
 
@@ -656,7 +659,7 @@ bool Delegate::VideoIsFinished()
     p_src_clip_->ShowImage(img);
     p_dst_clip_1_->ShowImage(img);
     p_dst_clip_2_->ShowImage(img);
-    p_plot_->clear_plot();
+    p_plot_->clear_graph_data();
 
     return true;
 }
@@ -749,7 +752,7 @@ void Delegate::ConnectStatus(bool flag)
     p_src_clip_->ShowImage(img);
     p_dst_clip_1_->ShowImage(img);
     p_dst_clip_2_->ShowImage(img);
-//    p_plot_->clear_plot();
+    p_plot_->clear_graph_data();
 }
 
 void Delegate::ConvertToSlice(const cv::Mat &src, cv::Mat &dst, cv::Point pt1, cv::Point pt2)
