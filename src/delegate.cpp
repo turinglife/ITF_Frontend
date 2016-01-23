@@ -26,7 +26,8 @@ void Delegate::Init(std::vector<std::map<string, string> > task_info, int channe
     task_info_ = task_info[0];
     curr_channel_ = channel;
 
-//! Take care of Wrong Case
+    std::cout << "connecting DB" << std::endl;
+//! [Take care of Wrong Case]
     if (task_info_["camera_status"] == kStatusOFF && task_info_["task_status"] == kStatusON) {
         task_info_["task_status"] = kStatusOFF;
         if (!DBHelper::UpdateStatusToTasks("task_status", task_info_["task_status"], task_info_["task_name"])) {
@@ -35,6 +36,37 @@ void Delegate::Init(std::vector<std::map<string, string> > task_info, int channe
         }
     }
 
+//! [get videos or cameras infos]
+    std::vector<std::map<std::string, std::string> > res_cameras;
+    if (task_info_["camera_type"] == kCameraTypeFile) {
+        if (!DBHelper::SelectFromTable("Files", "task_name", task_info_["task_name"],res_cameras)) {
+            QMessageBox::warning(0, "Warning", "Update DB Failed!", QMessageBox::Ok, QMessageBox::Ok);
+            return;
+        }
+    } else {
+        std::vector<std::map<std::string, std::string> > res_task_camera;
+        if (!DBHelper::SelectFromTable("Task_Camera", "task_name", task_info_["task_name"], res_task_camera)) {
+            QMessageBox::warning(0, "Warning", "Update DB Failed!", QMessageBox::Ok, QMessageBox::Ok);
+            return;
+        }
+        if (!DBHelper::SelectFromTable("Cameras", "camera_name", res_task_camera[0]["camera_name"],res_cameras)) {
+            QMessageBox::warning(0, "Warning", "Update DB Failed!", QMessageBox::Ok, QMessageBox::Ok);
+            return;
+        }
+    }
+    frame_width_ = atoi(res_cameras[0]["width"].c_str());
+    frame_height_ = atoi(res_cameras[0]["height"].c_str());
+    std::cout << "width: " << frame_width_<<std::endl;
+    std::cout << "height: " << frame_height_<<std::endl;
+
+//! [Get Alarm Strategy From DB]
+    std::vector<std::map<std::string, std::string> > res_alarm_strategy;
+    if (!DBHelper::SelectFromTable("DensityAlarmStrategy", "task_name", task_info_["task_name"], res_alarm_strategy)) {
+        QMessageBox::warning(0, "Warning", "Update DB Failed!", QMessageBox::Ok, QMessageBox::Ok);
+        return;
+    }
+
+    std::cout << "create thread" << std::endl;
 //! [Create new thread for execute command]
     p_command_center_ = new TaskCommandCenter(task_info_["task_name"], 0);
     p_command_center_->moveToThread(&thread_);
@@ -70,9 +102,6 @@ void Delegate::Init(std::vector<std::map<string, string> > task_info, int channe
 //! [Alarm]
     p_clip_alarm_ = new UClipAlarmWidget(this);
     p_clip_alarm_->setVisible(false);
-    std::vector<std::map<std::string, std::string> > res_alarm_strategy;
-    if (!DBHelper::SelectFromTable("DensityAlarmStrategy", "task_name", task_info_["task_name"], res_alarm_strategy))
-        return;
     if (res_alarm_strategy.empty()) {
         std::string priority = "0";
         p_clip_alarm_->set_alarm_strategy(false, priority, priority, priority);
@@ -215,9 +244,11 @@ void Delegate::PlayDst()
         p_dst_clip_1_->ShowImage(curr_dst_1_);
 
     } else if (task_info_["task_type"] == kTaskTypeCrossline) {
+        std::cout << "buffer" << std::endl;
         if(!buffer_.fetch_dst(curr_timestamp_,  curr_dst_1_, curr_dst_2_, curr_count_1_, curr_count_2_, false)) {
             return;
         }
+        std::cout << "Key" << std::endl;
         double key;
         if (task_info_["camera_type"] == kCameraTypeFile) {
             key = QDateTime::currentDateTime().toMSecsSinceEpoch()/1000.0;
@@ -225,13 +256,15 @@ void Delegate::PlayDst()
             key = static_cast<double> (curr_timestamp_);
         }
 
+        std::cout << "Plot" << std::endl;
         p_plot_->set_data(key, curr_count_1_+curr_count_2_, curr_count_1_, curr_count_2_);
 
 //        /*convert to slice*/
-//        std::cout << "Slice" << std::endl;
+        std::cout << "Slice" << std::endl;
         ConvertToSlice(curr_dst_1_, curr_dst_slice_1_, roi_points_[0], roi_points_[1]);
         ConvertToSlice(curr_dst_2_, curr_dst_slice_2_, roi_points_[0], roi_points_[1]);
         /* dst clip */
+        std::cout << "show" << std::endl;
         p_dst_clip_1_->ShowImage(curr_dst_slice_1_);
         p_dst_clip_2_->ShowImage(curr_dst_slice_2_);
 //        p_dst_clip_1_->ShowImage(curr_dst_1_);
@@ -253,7 +286,7 @@ void Delegate::CommandAssigner(QString daemon, QString operation)
     /* Start CD */
     if (daemon == QString::fromStdString(kDaemonCD) && operation == QString::fromStdString(kCommandStart)) {
         p_src_clip_->set_clip_controler(false, false, false, false, false);
-//        ConnectStatus(1);
+        ConnectStatus(1);
     }
 
     /* Stop CD */
@@ -327,23 +360,30 @@ void Delegate::MessageReceiver(QString daemon, QString operation, bool flag)
                     }
                     emit CameraStarted();
                 } else {
-                    p_src_clip_->set_clip_controler(true, false, false, false, false);
-//                    ConnectStatus(0);
+                    p_src_clip_->set_clip_controler(false, false, false, false, false);
+                    ConnectStatus(0);
                     //-- Update camera_status==OFF to DB */
                     task_info_["camera_status"] = kStatusOFF;
                     if (!DBHelper::UpdateStatusToTasks("camera_status", task_info_["camera_status"], task_info_["task_name"])) {
                         QMessageBox::warning(0, "Warning", "Update DB Failed!", QMessageBox::Ok, QMessageBox::Ok);
                     }
+                    /*When Buffer Init Faild, Need to Stop CD*/
+                    StopCD();
                 }
             } else {
                 // CD START FAILED
-                p_src_clip_->set_clip_controler(true, false, false, false, false);
-//                ConnectStatus(0);
+                /*Automatically remove from clipboard*/
+                p_src_clip_->set_clip_controler(false, false, false, false, false);
+                ConnectStatus(0);
+                emit CameraStoped();
             }
         }
         /*STOP*/
         if (operation == QString::fromStdString(kCommandStop)){
             p_src_clip_->set_clip_controler(true, false, false, false, false);
+            if (!flag) {
+                QMessageBox::warning(0, "Warning", "Stop CD Failed", QMessageBox::Ok, QMessageBox::Ok);
+            }
             emit CameraStoped();
         }
     }
@@ -375,6 +415,9 @@ void Delegate::MessageReceiver(QString daemon, QString operation, bool flag)
         /* STOP */
         if (operation == QString::fromStdString(kCommandStop)){
             p_src_clip_->set_clip_controler(true, true, false, false, true);
+            if (!flag) {
+                QMessageBox::warning(0, "Warning", "Stop AD Failed", QMessageBox::Ok, QMessageBox::Ok);
+            }
             emit TaskStoped();
         }
     }
@@ -450,16 +493,20 @@ void Delegate::OnRemoveFromBoardClicked()
         timer_src_.stop();
         StopCD();
     } else {
-        emit RemoveFromChannel(curr_channel_);
+        // handle the situation of vidso is over
+        if (video_finished_) {
+            emit RemoveFromChannel(curr_channel_);
+        }
     }
 }
 
 
 void Delegate::OnThreadFInished()
 {
-    if (!video_finished_) {
-        emit RemoveFromChannel(curr_channel_);
-    }
+    if (video_finished_)
+        return;
+
+    emit RemoveFromChannel(curr_channel_);
 }
 
 void Delegate::OnStartADClicked()
@@ -584,13 +631,13 @@ bool Delegate::IsReadyToStartAD()
 bool Delegate::VideoIsFinished()
 {
     std::cout << "video is finished" << std::endl;
+    p_src_clip_->set_clip_controler(false, false, false, false, false);
     video_finished_ = true;
     // When Video is Finished, stop AD, CD
     if (timer_dst_.isActive()) {
         timer_dst_.stop();
         StopAD();
     }
-    p_src_clip_->set_clip_controler(true, false, false, false, false);
 
     int index=0;
     while (++index < 5) {
@@ -690,34 +737,39 @@ void Delegate::WriteCountingSetting()
     }
 }
 
-//void Delegate::ConnectStatus(bool flag)
-//{
-//    cv::Mat  img = cv::Mat::zeros(frame_height_, frame_width_, CV_8UC3);
-//    if (flag) {
-//        cv::putText(img, "Connecting ...", cv::Point(frame_width_/2 - 100, frame_height_/2), cv::FONT_HERSHEY_SCRIPT_SIMPLEX, 2, cv::Scalar(255, 0, 0), 5, 16);
-//    } else {
-//        cv::putText(img, "Connect Error", cv::Point(frame_width_/2 - 100, frame_height_/2), cv::FONT_HERSHEY_SCRIPT_SIMPLEX, 2, cv::Scalar(255, 0, 0), 5, 16);
-//    }
-//    p_src_clip_->ShowImage(img);
-//    p_dst_clip_1_->ShowImage(img);
-//    p_dst_clip_2_->ShowImage(img);
+void Delegate::ConnectStatus(bool flag)
+{
+    cv::Mat img = cv::Mat::zeros(frame_height_, frame_width_, CV_8UC3);
+    if (flag) {
+        cv::putText(img, "Connecting ...", cv::Point(frame_width_/2 - 150, frame_height_/2), cv::FONT_HERSHEY_SCRIPT_SIMPLEX, 2, cv::Scalar(255, 0, 0), 5, 16);
+    } else {
+        cv::putText(img, "Connect Error", cv::Point(frame_width_/2 - 150, frame_height_/2), cv::FONT_HERSHEY_SCRIPT_SIMPLEX, 2, cv::Scalar(255, 0, 0), 5, 16);
+    }
+    p_src_clip_->ShowImage(img);
+    p_dst_clip_1_->ShowImage(img);
+    p_dst_clip_2_->ShowImage(img);
 //    p_plot_->clear_plot();
-//}
+}
 
 void Delegate::ConvertToSlice(const cv::Mat &src, cv::Mat &dst, cv::Point pt1, cv::Point pt2)
 {
     //mat.at<cv::Vec3b>(y, x);
     /*Extract all the pixels on the raster line segment connecting two specified points. */
+    std::cout <<"Begin ConverToSlice" << std::endl;
+    std::cout << "line" << std::endl;
     vector<cv::Vec3b> line;
     ExtractLine(src, pt1, pt2, line);
     cv::Mat img = dst.clone();
+    std::cout << "img copyto" << std::endl;
     img(cv::Rect(1, 0, img.cols-1, img.rows)).copyTo(dst(cv::Rect(0, 0, dst.cols-1, dst.rows)));
+    std::cout << "val copy" << std::endl;
     for(int i=0; i<line.size(); ++i) {
         cv::Vec3b val = line[i];
         dst.at<cv::Vec3b>(i, dst.cols-1)[0] = val[0];
         dst.at<cv::Vec3b>(i, dst.cols-1)[1] = val[1];
         dst.at<cv::Vec3b>(i, dst.cols-1)[2] = val[2];
     }
+    std::cout <<"ENd ConverToSlice" << std::endl;
 }
 
 void Delegate::ExtractLine(const cv::Mat &src, cv::Point pt1, cv::Point pt2, vector<cv::Vec3b> &line)
