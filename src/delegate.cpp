@@ -603,9 +603,10 @@ bool Delegate::IsReadyToStartAD()
     }
 
     if (task_info_["task_type"] == kTaskTypeCrossline) {
-        QVector<cv::Vec3b> line;
-        ExtractLine(curr_src_.clone(), roi_points_[0], roi_points_[1], line);
-        slice_height_ = line.size() - 1;
+//        QVector<cv::Vec3b> line;
+        cross_line_.clear();
+        ExtractLine(curr_src_, roi_points_[0], roi_points_[1], cross_line_);
+        slice_height_ = cross_line_.size() - 1;
         slice_width_ = slice_height_*frame_ratio_;
         // init slice mat
         curr_dst_slice_1_ = cv::Mat::zeros(slice_height_, slice_width_, CV_8UC3);
