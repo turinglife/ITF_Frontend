@@ -15,6 +15,7 @@ public:
     void set_plot(double x_axis_min, double x_axis_max, std::string camera_type, std::string task_type);
     void set_data(double key, double val1, double val2=0, double val3=0);
     void clear_plot();
+    void clear_graph_data();
 
 protected:
     QCustomPlot *plot_;
