@@ -72,9 +72,10 @@ private:
     bool ReadCountingSetting();
     void WriteCountingSetting();
     void ConnectStatus(bool flag);
+    void PutInfosOnImage(cv::Mat &img);
 
     void ConvertToSlice(const cv::Mat &src, cv::Mat &dst, cv::Point pt1, cv::Point pt2);
-    void ExtractLine(const cv::Mat &src, cv::Point pt1, cv::Point pt2, QVector<cv::Vec3b> &line);
+    void ExtractLine(const cv::Mat &src, cv::Point pt1, cv::Point pt2, std::vector<cv::Vec3b> &line);
     void OrthogonalLine(const cv::Point &src_pt1, const cv::Point &src_pt2, const cv::Point &dst_pt1, cv::Point &dst_line_pt2, int dst_line_length);
     void ArrowedLine(cv::Mat &img, cv::Point pt1, cv::Point pt2, const cv::Scalar& color, int thickness=1, int line_type=8, int shift=0, double tipLength=0.5);
     void release_memory();
@@ -116,7 +117,6 @@ private:
 
     QVector<cv::Point> roi_points_;
     QVector<cv::Point> arrow_points_;
-    QVector<cv::Vec3b> cross_line_;
 };
 
 #endif // DELEGATE_H

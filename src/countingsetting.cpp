@@ -70,7 +70,7 @@ CountingSetting::CountingSetting(string task_type, QWidget *parent)
     p_guide_pers->setAlignment(Qt::AlignTop);
     p_guide_pers->setWordWrap(true);
     p_guide_pers->setMaximumWidth(300);
-    p_guide_pers->setText(tr("Steps of Pesestrain Size\n"
+    p_guide_pers->setText(tr("Steps of Pedestrain Size\n"
                              "\n"
                              "1. Click \"Snapshot\" to get a image which contains at least 2 pedestrains who have different distance from camera;\n"
                              "2. Click \"Draw\" to enter LabelMode;\n"
@@ -96,14 +96,14 @@ CountingSetting::CountingSetting(string task_type, QWidget *parent)
     p_guide_gt->setAlignment(Qt::AlignTop);
     p_guide_gt->setWordWrap(true);
     p_guide_gt->setMaximumWidth(300);
-    p_guide_gt->setText(tr("Steps of Label Pesestrains\n"
+    p_guide_gt->setText(tr("Steps of Label Pedestrains\n"
                          "\n"
                          "1. Click \"Snapshot\" to get a image\n"
                          "2. Click \"Delete\" to delete a image (if you don't like this image);\n"
                          "2. Click \"Clear\" to clear history records (if any);\n"
                          "3. Click \"Label\" to enter LabelMode;\n"
                          "4. Click pedestrains' head to label;\n"
-                         "5. Double click image to exit LabelMode when all pesestrains' head in ROI are labeled';\n"
+                         "5. Double click image to exit LabelMode when all pedestrains' head in ROI are labeled';\n"
                          "6. Go through above steps to label another image;\n"
                          "7. Click \"Finish\" to finish;\n"
                          "\n"
