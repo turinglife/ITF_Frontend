@@ -54,8 +54,14 @@ void Delegate::Init(std::vector<std::map<string, string> > task_info, int channe
             return;
         }
     }
+
+    // Init curr_src_, curr_dst_1_ and curr_dst_2_, frame_ratio_
     frame_width_ = atoi(res_cameras[0]["width"].c_str());
     frame_height_ = atoi(res_cameras[0]["height"].c_str());
+    frame_ratio_ = float(frame_width_) / float(frame_height_);
+    curr_src_ = cv::Mat::zeros(frame_height_, frame_width_, CV_8UC3);
+    curr_dst_1_ = cv::Mat::zeros(frame_height_, frame_width_, CV_8UC3);
+    curr_dst_2_ = cv::Mat::zeros(frame_height_, frame_width_, CV_8UC3);
     std::cout << "width: " << frame_width_<<std::endl;
     std::cout << "height: " << frame_height_<<std::endl;
 
@@ -191,7 +197,6 @@ void Delegate::StopMD()
 
 void Delegate::PlaySrc()
 {
-    std::cout << "Begin PlaySrc" << std::endl;
     if (!buffer_.fetch_src(curr_timestamp_, curr_src_, false)) {
         if (!buffer_.is_camera_valid()) {
             /// Video is over
@@ -202,30 +207,13 @@ void Delegate::PlaySrc()
     cv::Mat img_src = curr_src_.clone();
     /* Show ROI and Counting result */
     if (timer_dst_.isActive()) {
-        if (task_info_["task_type"] == kTaskTypeCounting) {
-            for (int i=0; i<roi_points_.size()-1; ++i) {
-                cv::line(img_src, roi_points_[i], roi_points_[i+1], cv::Scalar(100, 0, 255),  3, 8 );
-            }
-            cv::line(img_src, roi_points_.first(), roi_points_.last(), cv::Scalar(100, 0, 255),  3, 8 );
-            cv::putText(img_src, std::to_string(curr_count_1_), cv::Point(50, 60), cv::FONT_HERSHEY_SCRIPT_SIMPLEX, 2, cv::Scalar(0, 100, 255), 3, 8);
-        } else if (task_info_["task_type"] == kTaskTypeCrossline){
-            cv::line(img_src, roi_points_[0], roi_points_[1], cv::Scalar(100, 0, 255),  3, 8 );
-
-            ArrowedLine(img_src, arrow_points_[0], arrow_points_[1], cv::Scalar(100, 255, 0),  3, 8);
-            cv::putText(img_src, std::to_string(curr_count_1_), cv::Point(arrow_points_[1].x + 50, arrow_points_[0].y + 50), cv::FONT_HERSHEY_SCRIPT_SIMPLEX, 2, cv::Scalar(100, 255, 0), 3, 8);
-
-            ArrowedLine(img_src, arrow_points_[3], arrow_points_[2], cv::Scalar(0, 100, 255),  3, 8);
-            cv::putText(img_src, std::to_string(curr_count_2_), cv::Point(arrow_points_[3].x + 50, arrow_points_[2].y + 50), cv::FONT_HERSHEY_SCRIPT_SIMPLEX, 2, cv::Scalar(0, 100, 255), 3, 8);
-        }
+        PutInfosOnImage(img_src);
     }
-
     p_src_clip_->ShowImage(img_src);
-    std::cout << "End PlaySrc" << std::endl;
 }
 
 void Delegate::PlayDst()
 {
-    std::cout << "Begin PlayDst" << std::endl;
     if (task_info_["task_type"] == kTaskTypeCounting) {
         if(!buffer_.fetch_dst(curr_timestamp_, curr_dst_1_, curr_count_1_, false)) {
             return;
@@ -244,11 +232,9 @@ void Delegate::PlayDst()
         p_dst_clip_1_->ShowImage(curr_dst_1_);
 
     } else if (task_info_["task_type"] == kTaskTypeCrossline) {
-        std::cout << "buffer" << std::endl;
         if(!buffer_.fetch_dst(curr_timestamp_,  curr_dst_1_, curr_dst_2_, curr_count_1_, curr_count_2_, false)) {
             return;
         }
-        std::cout << "Key" << std::endl;
         double key;
         if (task_info_["camera_type"] == kCameraTypeFile) {
             key = QDateTime::currentDateTime().toMSecsSinceEpoch()/1000.0;
@@ -256,19 +242,14 @@ void Delegate::PlayDst()
             key = static_cast<double> (curr_timestamp_);
         }
 
-        std::cout << "Plot" << std::endl;
         p_plot_->set_data(key, curr_count_1_+curr_count_2_, curr_count_1_, curr_count_2_);
 
-//        /*convert to slice*/
-        std::cout << "Slice" << std::endl;
+        /*convert to slice*/
         ConvertToSlice(curr_dst_1_, curr_dst_slice_1_, roi_points_[0], roi_points_[1]);
         ConvertToSlice(curr_dst_2_, curr_dst_slice_2_, roi_points_[0], roi_points_[1]);
         /* dst clip */
-        std::cout << "show" << std::endl;
         p_dst_clip_1_->ShowImage(curr_dst_slice_1_);
         p_dst_clip_2_->ShowImage(curr_dst_slice_2_);
-//        p_dst_clip_1_->ShowImage(curr_dst_1_);
-//        p_dst_clip_2_->ShowImage(curr_dst_2_);
 
     } else {
         if(!buffer_.fetch_dst(curr_timestamp_, curr_dst_1_, false)) {
@@ -277,7 +258,6 @@ void Delegate::PlayDst()
         /* dst clip 1 */
         p_dst_clip_1_->ShowImage(curr_dst_1_);
     }
-    std::cout << "End PlayDst" << std::endl;
 }
 
 void Delegate::CommandAssigner(QString daemon, QString operation)
@@ -563,13 +543,7 @@ bool Delegate::InitBuffer()
         qDebug() << "Init Buffer failed";
         return false;
     }
-    buffer_.frame_size(frame_width_, frame_height_);
-    // Init curr_src_, curr_dst_1_ and curr_dst_2_, frame_ratio_
-    curr_src_ = cv::Mat::zeros(frame_height_, frame_width_, CV_8UC3);
-    curr_dst_1_ = cv::Mat::zeros(frame_height_, frame_width_, CV_8UC3);
-    curr_dst_2_ = cv::Mat::zeros(frame_height_, frame_width_, CV_8UC3);
-    frame_ratio_ = float(frame_width_) / float(frame_height_);
-
+//    buffer_.frame_size(frame_width_, frame_height_);
     return true;
 }
 
@@ -603,10 +577,9 @@ bool Delegate::IsReadyToStartAD()
     }
 
     if (task_info_["task_type"] == kTaskTypeCrossline) {
-//        QVector<cv::Vec3b> line;
-        cross_line_.clear();
-        ExtractLine(curr_src_, roi_points_[0], roi_points_[1], cross_line_);
-        slice_height_ = cross_line_.size() - 1;
+        std::vector<cv::Vec3b> cross_line;
+        ExtractLine(curr_src_, roi_points_[0], roi_points_[1], cross_line);
+        slice_height_ = cross_line.size();
         slice_width_ = slice_height_*frame_ratio_;
         // init slice mat
         curr_dst_slice_1_ = cv::Mat::zeros(slice_height_, slice_width_, CV_8UC3);
@@ -654,12 +627,10 @@ bool Delegate::VideoIsFinished()
 
     OnRemoveFromBoardClicked();
 
-    cv::Mat  img = cv::Mat::zeros(frame_height_, frame_width_, CV_8UC3);
+    cv::Mat  img = curr_src_.clone();
+    PutInfosOnImage(img);
     cv::putText(img, "Finished", cv::Point(frame_width_/2 - 100, frame_height_/2), cv::FONT_HERSHEY_SCRIPT_SIMPLEX, 2, cv::Scalar(0, 100, 255), 5, 16);
     p_src_clip_->ShowImage(img);
-    p_dst_clip_1_->ShowImage(img);
-    p_dst_clip_2_->ShowImage(img);
-    p_plot_->clear_graph_data();
 
     return true;
 }
@@ -750,45 +721,56 @@ void Delegate::ConnectStatus(bool flag)
         cv::putText(img, "Connect Error", cv::Point(frame_width_/2 - 150, frame_height_/2), cv::FONT_HERSHEY_SCRIPT_SIMPLEX, 2, cv::Scalar(255, 0, 0), 5, 16);
     }
     p_src_clip_->ShowImage(img);
-    p_dst_clip_1_->ShowImage(img);
-    p_dst_clip_2_->ShowImage(img);
-    p_plot_->clear_graph_data();
+}
+
+void Delegate::PutInfosOnImage(cv::Mat &img)
+{
+    if (task_info_["task_type"] == kTaskTypeCounting) {
+        for (int i=0; i<roi_points_.size()-1; ++i) {
+            cv::line(img, roi_points_[i], roi_points_[i+1], cv::Scalar(100, 0, 255),  3, 8 );
+        }
+        cv::line(img, roi_points_.first(), roi_points_.last(), cv::Scalar(100, 0, 255),  3, 8 );
+        cv::putText(img, std::to_string(curr_count_1_), cv::Point(50, 60), cv::FONT_HERSHEY_SCRIPT_SIMPLEX, 2, cv::Scalar(0, 100, 255), 3, 8);
+    } else if (task_info_["task_type"] == kTaskTypeCrossline){
+        cv::line(img, roi_points_[0], roi_points_[1], cv::Scalar(100, 0, 255),  3, 8 );
+
+        ArrowedLine(img, arrow_points_[0], arrow_points_[1], cv::Scalar(100, 255, 0),  3, 8);
+        cv::putText(img, std::to_string(curr_count_1_), cv::Point(arrow_points_[1].x + 50, arrow_points_[0].y + 50), cv::FONT_HERSHEY_SCRIPT_SIMPLEX, 2, cv::Scalar(100, 255, 0), 3, 8);
+
+        ArrowedLine(img, arrow_points_[3], arrow_points_[2], cv::Scalar(0, 100, 255),  3, 8);
+        cv::putText(img, std::to_string(curr_count_2_), cv::Point(arrow_points_[3].x + 50, arrow_points_[2].y + 50), cv::FONT_HERSHEY_SCRIPT_SIMPLEX, 2, cv::Scalar(0, 100, 255), 3, 8);
+    }
 }
 
 void Delegate::ConvertToSlice(const cv::Mat &src, cv::Mat &dst, cv::Point pt1, cv::Point pt2)
 {
-    //mat.at<cv::Vec3b>(y, x);
     /*Extract all the pixels on the raster line segment connecting two specified points. */
-    std::cout <<"Begin ConverToSlice" << std::endl;
-    std::cout << "line" << std::endl;
-//    QVector<cv::Vec3b> line;
-    cross_line_.clear();
-    ExtractLine(src, pt1, pt2, cross_line_);
+    std::vector<cv::Vec3b> cross_line;
+    ExtractLine(src, pt1, pt2, cross_line);
     cv::Mat img = dst.clone();
-    std::cout << "img copyto" << std::endl;
     img(cv::Rect(1, 0, img.cols-1, img.rows)).copyTo(dst(cv::Rect(0, 0, dst.cols-1, dst.rows)));
-    std::cout << "val copy" << std::endl;
-    if (dst.rows == cross_line_.size()) {
-        std::cout << "size diff" << std::endl;
-        exit(-1);
+    Q_ASSERT_X(dst.rows == cross_line.size(),  "ConvertToSlice", "size is not equal");
+    for(int i=0; i<cross_line.size(); ++i) {
+        cv::Vec3b val = cross_line.at(i);
+        uchar val0 = val[0];
+        uchar val1 = val[1];
+        uchar val2 = val[2];
+        dst.at<cv::Vec3b>(i, dst.cols-1)[0] = val0;
+        dst.at<cv::Vec3b>(i, dst.cols-1)[1] = val1;
+        dst.at<cv::Vec3b>(i, dst.cols-1)[2] = val2;
     }
-    for(size_t i=0; i<cross_line_.size(); ++i) {
-        cv::Vec3b val = cross_line_[i];
-        dst.at<cv::Vec3b>(i, dst.cols-1)[0] = val[0];
-        dst.at<cv::Vec3b>(i, dst.cols-1)[1] = val[1];
-        dst.at<cv::Vec3b>(i, dst.cols-1)[2] = val[2];
-    }
-    std::cout <<"ENd ConverToSlice" << std::endl;
 }
 
-void Delegate::ExtractLine(const cv::Mat &src, cv::Point pt1, cv::Point pt2, QVector<cv::Vec3b> &line)
+void Delegate::ExtractLine(const cv::Mat &src, cv::Point pt1, cv::Point pt2, std::vector<cv::Vec3b> &line)
 {
     // grabs pixels along the line (pt1, pt2)
     // from 8-bit 3-channel image to the buffer
     /*iterate over all the pixels on the raster line segment connecting two specified points.*/
-    cv::LineIterator it(src, pt1, pt2, 8);
+    cv::LineIterator it(src, pt1, pt2, 8, true);
     for(int i = 0; i < it.count; i++, ++it) {
-        line.push_back((cv::Vec3b)*it);
+//        line.push_back((const cv::Vec3b)*it);
+        cv::Vec3b val = src.at<cv::Vec3b>(it.pos());
+        line.push_back(val);
     }
 }
 
