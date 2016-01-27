@@ -30,7 +30,7 @@ private slots:
     void OnTableViewPressed(const QModelIndex &index);
 
 private:
-    bool CameraInfo(std::string &camera_name, std::string &address, std::string &host, std::string &port, std::string &username, std::string &password, int &width, int &height, int &fps, int &total_frames);
+    void CameraInfo(std::string &camera_name, std::string &address, std::string &host, std::string &port, std::string &username, std::string &password);
     void LoadCameraInfo();
     bool IsCameraUsing(string str);
     bool DeleteCameras(const string &camera_name);

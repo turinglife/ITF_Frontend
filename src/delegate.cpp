@@ -10,7 +10,7 @@ Delegate::Delegate(QWidget *parent)
     , curr_count_1_(0)
     , curr_count_2_(0)
 {
-    fps_ = 50;
+    fps_ = 25;
 }
 
 Delegate::~Delegate()
@@ -752,12 +752,15 @@ void Delegate::ConvertToSlice(const cv::Mat &src, cv::Mat &dst, cv::Point pt1, c
     Q_ASSERT_X(dst.rows == cross_line.size(),  "ConvertToSlice", "size is not equal");
     for(int i=0; i<cross_line.size(); ++i) {
         cv::Vec3b val = cross_line.at(i);
-        uchar val0 = val[0];
-        uchar val1 = val[1];
-        uchar val2 = val[2];
-        dst.at<cv::Vec3b>(i, dst.cols-1)[0] = val0;
-        dst.at<cv::Vec3b>(i, dst.cols-1)[1] = val1;
-        dst.at<cv::Vec3b>(i, dst.cols-1)[2] = val2;
+//        uchar val0 = val[0];
+//        uchar val1 = val[1];
+//        uchar val2 = val[2];
+//        dst.at<cv::Vec3b>(i, dst.cols-1)[0] = val0;
+//        dst.at<cv::Vec3b>(i, dst.cols-1)[1] = val1;
+//        dst.at<cv::Vec3b>(i, dst.cols-1)[2] = val2;
+        dst.at<cv::Vec3b>(i, dst.cols-1)[0] = val[0];
+        dst.at<cv::Vec3b>(i, dst.cols-1)[1] = val[1];
+        dst.at<cv::Vec3b>(i, dst.cols-1)[2] = val[2];
     }
 }
 
