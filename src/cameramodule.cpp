@@ -153,10 +153,19 @@ void CameraModule::set_flag(bool f_select, bool f_add, bool f_delete, bool f_lin
 void CameraModule::OnBtnSelectClicked()
 {
     // Get Camera Info From Right Side
-    int width, height, fps, total_frames;
     std::string camera_name, address, host, port, username, password;
-    if (!CameraInfo(camera_name, address, host, port, username, password, width, height, fps, total_frames))
+    CameraInfo(camera_name, address, host, port, username, password);
+    if (camera_name.empty() || address.empty() || host.empty() || port.empty() || username.empty() || password.empty()) {
+        QMessageBox::warning(NULL, "warning", "Please click the leftside list to choose a camera!", QMessageBox::Ok, QMessageBox::Ok);
         return;
+    }
+
+    // test camera
+    std::string camera_path = Utility::CameraAddress(username, password, host, port, address);
+    if (! Utility::IsCameraValid(camera_path)) {
+        QMessageBox::warning(NULL, "warning", "Camera Unvalid!", QMessageBox::Ok, QMessageBox::Ok);
+        return;
+    }
 
     // Send Selected Camera
     emit CameraSelected(QString::fromStdString(camera_name));
@@ -165,10 +174,20 @@ void CameraModule::OnBtnSelectClicked()
 void CameraModule::OnBtnAddClicked()
 {
     // Get Camera Info From Right Side
-    int width, height, fps, total_frames;
     std::string camera_name, address, host, port, username, password;
-    if (!CameraInfo(camera_name, address, host, port, username, password, width, height, fps, total_frames))
+    CameraInfo(camera_name, address, host, port, username, password);
+    if (camera_name.empty() || address.empty() || host.empty() || port.empty() || username.empty() || password.empty()) {
+        QMessageBox::warning(NULL, "warning", "Please Complete Form of Right Side!", QMessageBox::Ok, QMessageBox::Ok);
         return;
+    }
+
+    // get camera property
+    int width, height, fps, total_frames;
+    std::string camera_path = Utility::CameraAddress(username, password, host, port, address);
+    if (!Utility::CameraProperty(camera_path, width, height, fps, total_frames)) {
+        QMessageBox::warning(NULL, "warning", "Camera Unvalid!", QMessageBox::Ok, QMessageBox::Ok);
+        return;
+    }
 
     // Check Camera Name in DB
     if (Utility::IsNameExistInDB("Cameras", "camera_name", camera_name)) {
@@ -215,7 +234,7 @@ void CameraModule::OnTableViewPressed(const QModelIndex &index)
     p_password_->setText(QString::fromStdString(mymap["password"]));
 }
 
-bool CameraModule::CameraInfo(string &camera_name, string &address, string &host, string &port, string &username, string &password, int &width, int &height, int &fps, int &total_frames)
+void CameraModule::CameraInfo(string &camera_name, string &address, string &host, string &port, string &username, string &password)
 {
     camera_name = p_cameraname_->text().toStdString();
     address = p_address_->text().toStdString();
@@ -223,20 +242,6 @@ bool CameraModule::CameraInfo(string &camera_name, string &address, string &host
     port = p_port_->text().toStdString();
     username = p_username_->text().toStdString();
     password = p_password_->text().toStdString();
-
-    if (camera_name.empty() || address.empty() || host.empty() || port.empty() || username.empty() || password.empty()) {
-        QMessageBox::warning(NULL, "warning", "Please Complete Form of Right Side!", QMessageBox::Ok, QMessageBox::Ok);
-        return false;
-    }
-
-    // Check Camera is Valid or Not
-    std::string camera_path = "http://" + username + ":" + password + "@" + host + ":" + port + "/" + address;
-    if (! Utility::IsCameraValid(camera_path, width, height, fps, total_frames)) {
-        QMessageBox::warning(NULL, "warning", "Camera Unvalid!", QMessageBox::Ok, QMessageBox::Ok);
-        return false;
-    }
-
-    return true;
 }
 
 void CameraModule::LoadCameraInfo()

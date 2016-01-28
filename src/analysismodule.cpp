@@ -348,6 +348,11 @@ bool AnalysisModule::LoadTasksInfo()
 
 void AnalysisModule::CreateDelegate(std::vector<std::map<string, string> > &res, int channel)
 {
+    // Check Task is valid or not
+    if (!Utility::IsTaskValid(res)) {
+        return;
+    }
+
     // Create a delegate and Init parameters
     p_delegate_ = new Delegate(this);
     p_delegate_->Init(res, channel);

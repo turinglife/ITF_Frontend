@@ -189,7 +189,8 @@ bool TaskWidget::set_task_camera()
         return false;
     }
     if (p_utcamera_->camera_type() == "Video") {
-        if (!Utility::IsCameraValid(p_utcamera_->camera().toStdString(), width_, height_, fps_, total_frames_)) {
+        // test video and get its property
+        if (!Utility::CameraProperty(p_utcamera_->camera().toStdString(), width_, height_, fps_, total_frames_)) {
             p_utcamera_->set_warning(p_utcamera_->camera_type() + QString(" Can't Open!"));
             return false;
         }

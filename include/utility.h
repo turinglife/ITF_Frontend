@@ -59,18 +59,75 @@ public:
     // choose file;
     static QString GetFileName(QString filter) {
 //        return QFileDialog::getOpenFileName(0, "FILE", QCoreApplication::applicationDirPath(), filter);
-        return QFileDialog::getOpenFileName(0, "FILE", QString("/home/lpzhang/ITF_DATA_CENTER/SHOWDATASET/videos"), filter);
+//        return QFileDialog::getOpenFileName(0, "FILE", QString("/home/lpzhang/ITF_DATA_CENTER/SHOWDATASET/videos"), filter);
+        return QFileDialog::getOpenFileName(0, "FILE", QString::fromStdString(kHome), filter);
     }
 
-    // check whether video or camera is valid;
-    static bool IsCameraValid(const std::string str, int &width, int &height, int &fps, int &total_frames) {
+    // check whether video or camera is still valid in tasks;
+    static bool IsTaskValid(std::vector<std::map<string, string> > &res) {
+        if (res[0]["camera_type"] == kCameraTypeFile) {
+            std::vector<std::map<string, string> > res_files;
+            std::string video_path;
+            if (DBHelper::SelectFromTable("Files", "task_name", res[0]["task_name"], res_files) && !res_files.empty()) {
+                video_path = res_files[0]["file_url"];
+            } else {
+                return false;
+            }
+
+            if (!IsCameraValid(video_path)) {
+                QMessageBox::information(NULL, "Video Check", "Video file can not open", QMessageBox::Ok, QMessageBox::Ok);
+                return false;
+            }
+        } else if (res[0]["camera_type"] == kCameraTypeHttp) {
+            std::vector<std::map<string, string> > res_task_camera;
+            std::string camera_path;
+            if (DBHelper::SelectFromTable("Task_Camera", "task_name", res[0]["task_name"], res_task_camera) && !res_task_camera.empty()) {
+                std::vector<std::map<string, string> > res_camera;
+                if (DBHelper::SelectFromTable("Cameras", "camera_name", res_task_camera[0]["camera_name"], res_camera) && !res_camera.empty()) {
+                    camera_path = CameraAddress(res_camera[0]["username"], res_camera[0]["password"], res_camera[0]["host"], res_camera[0]["port"], res_camera[0]["address"]);
+                } else {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+
+            if (!IsCameraValid(camera_path)) {
+                QMessageBox::information(NULL, "Camera Check", "Camera can not open", QMessageBox::Ok, QMessageBox::Ok);
+                return false;
+            }
+        } else {
+            std::cout << "camera type error" << std::endl;
+            return false;
+        }
+
+        return true;
+    }
+
+    /* get Camera Address*/
+    static std::string CameraAddress(const std::string &username, const std::string &password, const std::string &host, const std::string &port, const std::string &suffix) {
+        return std::string("http://" + username + ":" + password + "@" + host + ":" + port + "/" + suffix);
+    }
+
+    /*Test Video/Camera is valid or not*/
+    static bool IsCameraValid(const std::string &str) {
         cv::VideoCapture cap(str);
         if (!cap.isOpened())
             return false;
+        return true;
+    }
+
+    /*Get information of Video/Camera*/
+    static bool CameraProperty(const std::string &str, int &width, int &height, int &fps, int &total_frames) {
+        cv::VideoCapture cap(str);
+        if (!cap.isOpened())
+            return false;
+
         width = static_cast<int> (cap.get(CV_CAP_PROP_FRAME_WIDTH));
         height = static_cast<int> (cap.get(CV_CAP_PROP_FRAME_HEIGHT));
         fps = static_cast<int> (cap.get(CV_CAP_PROP_FPS));
         total_frames = static_cast<int> (cap.get(CV_CAP_PROP_FRAME_COUNT));
+
         return true;
     }
 
